@@ -1,8 +1,8 @@
-package ru.leti.aligners;
+package ru.etu.controlservice;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import ru.leti.aligners.service.PacsService;
+import ru.etu.controlservice.service.PacsService;
 
 
 @SpringBootTest

@@ -1,4 +1,4 @@
-package ru.leti.aligners.service;
+package ru.etu.controlservice.service;
 
 import com.google.gson.Gson;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -8,41 +8,41 @@ import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.multipart.MultipartFile;
-import ru.leti.aligners.model.DicomResponse;
+import ru.etu.controlservice.model.DicomResponse;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
 import java.util.List;
 
 @Service
 public class PacsService {
 
+    private final RestClient restClient;
     @Value("${pacs.address.base}")
     private String pacsBase;
-
-    private final RestClient restClient;
 
     @Autowired
     public PacsService(RestClient restClient) {
         this.restClient = restClient;
     }
 
-    public List<String> getPatientsIds(){
+    public List<String> getPatientsIds() {
         return restClient.get()
                 .uri(pacsBase + "/patients")
                 .retrieve()
-                .body(new ParameterizedTypeReference<>() {});
+                .body(new ParameterizedTypeReference<>() {
+                });
     }
 
-    public List<String> getInstancesIds(){
+    public List<String> getInstancesIds() {
         return restClient.get()
                 .uri(pacsBase + "/instances")
                 .retrieve()
-                .body(new ParameterizedTypeReference<>() {});
+                .body(new ParameterizedTypeReference<>() {
+                });
     }
 
-    public DicomResponse sendInstance(MultipartFile file){
+    public DicomResponse sendInstance(MultipartFile file) {
 
         try {
             String response = restClient.post()
@@ -57,7 +57,7 @@ public class PacsService {
         }
     }
 
-    public File getInstance(String id){
+    public File getInstance(String id) {
         return restClient.get()
                 .uri(pacsBase + "/instances/" + id + "/file")
                 .retrieve()

@@ -1,0 +1,17 @@
+spring:
+  application:
+    name: control-service
+
+server:
+  port: 9090
+
+pacs:
+  address:
+    base: http://localhost:8042
+
+s3:
+  uri: ${S3_URI}
+  credentials:
+    keyId: ${S3_KEY_ID}
+    keySecret: ${S3_KEY_SECRET}
+  bucket-name: ${S3_BUCKET_NAME}

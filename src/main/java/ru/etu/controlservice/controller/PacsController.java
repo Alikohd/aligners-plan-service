@@ -3,14 +3,12 @@ package ru.etu.controlservice.controller;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-import ru.etu.controlservice.model.DicomResponse;
+import ru.etu.controlservice.dto.DicomDto;
 import ru.etu.controlservice.service.PacsService;
 
-import java.util.ArrayList;
+import java.io.IOException;
 import java.util.List;
 
 @Controller
@@ -24,12 +22,16 @@ public class PacsController {
         this.pacsService = pacsService;
     }
 
-    @PostMapping("/series")
-    public ResponseEntity<List<DicomResponse>> uploadSeries(@RequestParam("files") List<MultipartFile> files) {
-        List<DicomResponse> list = new ArrayList<>();
-        files.forEach(file -> list.add(pacsService.sendInstance(file)));
-        return ResponseEntity.ok(list);
+    @PostMapping(value = "/series")
+    public ResponseEntity<List<DicomDto>> uploadSeries(@RequestParam("file") MultipartFile file) {
+        return ResponseEntity.ok(pacsService.sendInstance(file));
     }
 
-
+    @GetMapping(value = "/series/{id}", produces = "application/zip")
+    public ResponseEntity<byte[]> getZippedSeries(@PathVariable("id") String id) throws IOException {
+        return ResponseEntity
+                .ok()
+                .header("Content-Disposition", "attachment; filename=\"files.zip\"")
+                .body(pacsService.getZippedSeries(id));
+    }
 }

@@ -1,13 +1,18 @@
 spring:
   application:
     name: control-service
+  servlet:
+    multipart:
+      max-file-size: 256MB
+      max-request-size: 256MB
+      enabled: true
 
 server:
   port: 9090
 
 pacs:
   address:
-    base: http://localhost:8042
+    base: ${PACS_URI}
 
 s3:
   uri: ${S3_URI}
@@ -15,3 +20,4 @@ s3:
     keyId: ${S3_KEY_ID}
     keySecret: ${S3_KEY_SECRET}
   bucket-name: ${S3_BUCKET_NAME}
+

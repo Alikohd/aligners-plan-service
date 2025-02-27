@@ -1,4 +1,4 @@
-package ru.etu.controlservice.model;
+package ru.etu.controlservice.dto;
 
 import com.google.gson.annotations.SerializedName;
 import lombok.Getter;

@@ -5,10 +5,9 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.OneToOne;
+import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -18,6 +17,7 @@ import java.util.List;
 @Entity
 @Getter
 @Setter
+@Table(name = "node")
 public class Node {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE)
@@ -26,16 +26,11 @@ public class Node {
     @Column(nullable = false)
     private Long treatmentBranchId;
 
-    @ManyToOne
-    @JoinColumn(name = "patient_id", nullable = false)
-    private Patient patient;
+    @OneToMany(mappedBy = "node")
+    private List<NodeNextRelation> nextNodes = new ArrayList<>();
 
-    @ManyToOne
-    @JoinColumn(name = "prev_node_id")
-    private Node prevNode;
-
-    @OneToMany(mappedBy = "prevNode")
-    private List<Node> nextNodes = new ArrayList<>();
+    @OneToMany(mappedBy = "node")
+    private List<NodePrevRelation> prevNodes = new ArrayList<>();
 
 //    maybe redundant
     @OneToOne(mappedBy = "node")

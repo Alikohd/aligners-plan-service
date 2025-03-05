@@ -28,7 +28,7 @@ public class PacsController {
     }
 
     @GetMapping(value = "/series/{id}", produces = "application/zip")
-    public ResponseEntity<byte[]> getZippedSeries(@PathVariable("id") String id) throws IOException {
+    public ResponseEntity<byte[]> getZippedSeries(@PathVariable("id") String id){
         return ResponseEntity
                 .ok()
                 .header("Content-Disposition", "attachment; filename=\"files.zip\"")

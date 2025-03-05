@@ -1,0 +1,17 @@
+syntax = "proto3";
+
+option java_package = "ru.etu.controlservice";
+option java_outer_classname = "CtMaskServiceProto";
+
+service CtMask {
+
+  rpc SendDicomUrl (UrlRequest) returns (UrlReply) {}
+}
+
+message UrlRequest {
+  string url = 1;
+}
+
+message UrlReply {
+  string url = 1;
+}

@@ -8,11 +8,12 @@ spring:
       enabled: true
 
 server:
-  port: 9090
+  port: 7070
 
 pacs:
   address:
     base: ${PACS_URI}
+
 
 s3:
   uri: ${S3_URI}
@@ -21,3 +22,8 @@ s3:
     keySecret: ${S3_KEY_SECRET}
   bucket-name: ${S3_BUCKET_NAME}
 
+grpc:
+  client:
+    GLOBAL:
+      negotiation-type: plaintext
+      address: "localhost:8080"

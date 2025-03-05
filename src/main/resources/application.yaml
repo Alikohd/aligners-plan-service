@@ -26,4 +26,4 @@ grpc:
   client:
     GLOBAL:
       negotiation-type: plaintext
-      address: "localhost:8080"
+      address: "localhost:8081"

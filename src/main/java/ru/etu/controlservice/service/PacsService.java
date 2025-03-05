@@ -53,8 +53,8 @@ public class PacsService {
 
     public List<DicomDto> sendInstance(MultipartFile file) {
         List<DicomDto> responses = new ArrayList<>();
-        //try {
-            /*String response = restClient.post()
+        try {
+            String response = restClient.post()
                     .uri(pacsBase + "/instances")
                     .contentType(MediaType.IMAGE_JPEG)
                     .body(file.getBytes())
@@ -63,14 +63,15 @@ public class PacsService {
             Type listType = new TypeToken<ArrayList<DicomDto>>(){}.getType();
             responses.addAll(new Gson().fromJson(response, listType));
 
-             */
-            String maskUrl = sendToPlug("responses.stream().findAny().get().parentStudy()");
-            System.out.println(maskUrl);
-            //TODO: add study ID to table
+            if (!responses.isEmpty()) {
+                String maskUrl = sendToPlug(pacsBase, responses.stream().findAny().get().parentSeries());
+                //TODO: add mask series ID to table
+            }
+            //TODO: add series ID to table
             return responses;
-        //} catch (IOException e) {
-        //    throw new PacsOperationException("Can't send request to PACS server: " + file.getOriginalFilename() + " was not uploaded", e);
-       // }
+        } catch (IOException e) {
+            throw new PacsOperationException("Can't send request to PACS server: " + file.getOriginalFilename() + " was not uploaded", e);
+        }
     }
 
     public File getInstance(String id) {
@@ -94,14 +95,15 @@ public class PacsService {
         return file.getBytes();
     }
 
-    private String sendToPlug(String url){
-        CtMaskServiceProto.UrlRequest request = CtMaskServiceProto.UrlRequest.newBuilder()
-                .setUrl(url)
+    private String sendToPlug(String pacsBase, String seriesId){
+        CtMaskServiceProto.DicomRequest request = CtMaskServiceProto.DicomRequest.newBuilder()
+                .setPacsBase(pacsBase)
+                .setSeriesId(seriesId)
                 .build();
 
-        CtMaskServiceProto.UrlReply reply = ctMaskBlockingStub.sendDicomUrl(request);
+        CtMaskServiceProto.DicomReply reply = ctMaskBlockingStub.sendDicomUrl(request);
 
-        return reply.getUrl();
+        return reply.getSeriesId();
     }
 
 }

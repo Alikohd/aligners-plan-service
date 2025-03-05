@@ -5,13 +5,14 @@ option java_outer_classname = "CtMaskServiceProto";
 
 service CtMask {
 
-  rpc SendDicomUrl (UrlRequest) returns (UrlReply) {}
+  rpc SendDicomUrl (DicomRequest) returns (DicomReply) {}
 }
 
-message UrlRequest {
-  string url = 1;
+message DicomRequest {
+  string pacsBase = 1;
+  string seriesId = 2;
 }
 
-message UrlReply {
-  string url = 1;
+message DicomReply {
+  string seriesId = 1;
 }

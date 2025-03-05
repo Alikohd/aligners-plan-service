@@ -2,6 +2,7 @@ package ru.etu.controlservice.service;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
@@ -23,17 +24,13 @@ import java.util.zip.ZipFile;
 import java.util.zip.ZipOutputStream;
 
 @Service
+@RequiredArgsConstructor
 public class PacsService {
 
     private final RestClient restClient;
 
     @Value("${pacs.address.base}")
     private String pacsBase;
-
-    @Autowired
-    public PacsService(RestClient restClient) {
-        this.restClient = restClient;
-    }
 
     public List<String> getPatientsIds() {
         return restClient.get()
@@ -76,9 +73,9 @@ public class PacsService {
                 .body(File.class);
     }
 
-    public byte[] getZippedSeries(String id) throws IOException {
+    public byte[] getZippedSeries(String id){
         String file = restClient.post()
-                .uri(pacsBase + "/studies/" + id + "/archive")
+                .uri(pacsBase + "/series/" + id + "/archive")
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(new Gson().toJson(PacsZipCreationRequestDto.builder()
                         .asynchronous(false)

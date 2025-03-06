@@ -20,25 +20,17 @@ import java.util.List;
 @Setter
 @Entity
 @Table(name = "treatment_planning")
-public class TreatmentPlanning {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE)
-    private Long id;
-
+public class TreatmentPlanning extends BaseTreatmentStep {
     @ManyToOne
     @JoinColumn(name = "treatment_planning_id", nullable = false)
     private TreatmentPlanning treatmentPlanning;
 
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "collections_of_matrices_groups")
-    private List<List<List<String>>> collectionsOfMatricesGroups;
+    private String collectionsOfMatricesGroups;
 
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "attachments")
     private List<String> attachments;
 
-    @OneToOne
-    @JoinColumn(name = "node_id", unique = true)
-    private Node node;
 }

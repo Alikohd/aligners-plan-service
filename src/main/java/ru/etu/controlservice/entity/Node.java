@@ -27,10 +27,10 @@ public class Node {
     private Long treatmentBranchId;
 
     @OneToMany(mappedBy = "node")
-    private List<NodeNextRelation> nextNodes = new ArrayList<>();
+    private List<NodePrevRelation> prevNodes = new ArrayList<>();
 
     @OneToMany(mappedBy = "node")
-    private List<NodePrevRelation> prevNodes = new ArrayList<>();
+    private List<NodeNextRelation> nextNodes = new ArrayList<>();
 
 //    maybe redundant
     @OneToOne(mappedBy = "node")
@@ -41,5 +41,11 @@ public class Node {
 
     @OneToOne(mappedBy = "node")
     private AlignmentSegmentation alignmentSegmentation;
+
+    @OneToOne(mappedBy = "node")
+    private ResultPlanning resultPlanning;
+
+    @OneToOne(mappedBy = "node")
+    private TreatmentPlanning treatmentPlanning;
 
 }

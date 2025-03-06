@@ -15,18 +15,11 @@ import lombok.Setter;
 @Getter
 @Setter
 @Table(name = "ct_segmentation")
-public class CtSegmentation {
-    @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE)
-    private Long id;
-
+public class CtSegmentation extends BaseTreatmentStep {
     @Column(name = "ct_original")
     private String ctOriginal;
 
     @Column(name = "ct_mask")
     private String ctMask;
 
-    @OneToOne
-    @JoinColumn(name = "node_id", unique = true)
-    private Node node;
 }

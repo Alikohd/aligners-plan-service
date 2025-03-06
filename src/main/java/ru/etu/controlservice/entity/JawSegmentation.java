@@ -19,11 +19,7 @@ import java.util.List;
 @Getter
 @Setter
 @Table(name = "jaw_segmentation")
-public class JawSegmentation {
-    @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE)
-    private Long id;
-
+public class JawSegmentation extends BaseTreatmentStep {
     @Column(name = "jaw_upper_stl")
     private String jawUpperStl;
 
@@ -34,7 +30,4 @@ public class JawSegmentation {
     @Column(name = "jaws_json")
     private List<String> jawsJson;
 
-    @OneToOne
-    @JoinColumn(name = "node_id", unique = true)
-    private Node node;
 }

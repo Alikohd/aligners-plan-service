@@ -21,12 +21,7 @@ import java.util.List;
 @Setter
 @Entity
 @Table(name = "result_planning")
-public class ResultPlanning {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE)
-    private Long id;
-
+public class ResultPlanning extends BaseTreatmentStep {
     @ManyToOne
     @JoinColumn(name = "alignment_segmentation_id", nullable = false)
     private AlignmentSegmentation alignmentSegmentation;
@@ -35,7 +30,4 @@ public class ResultPlanning {
     @Column(name = "desired_teeth_matrices")
     private List<String> desiredTeethMatrices = new ArrayList<>();
 
-    @OneToOne
-    @JoinColumn(name = "node_id", unique = true)
-    private Node node;
 }

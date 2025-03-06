@@ -19,11 +19,7 @@ import java.util.List;
 @Getter
 @Setter
 @Table(name = "alignment_segmentation")
-public class AlignmentSegmentation {
-    @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE)
-    private Long id;
-
+public class AlignmentSegmentation extends BaseTreatmentStep {
     @OneToOne
     @JoinColumn(name = "ct_segmentation_id", nullable = false)
     private CtSegmentation ctSegmentation;
@@ -40,7 +36,4 @@ public class AlignmentSegmentation {
     @Column(name = "stl_tooth_refs")
     private List<String> stlToothRefs;
 
-    @OneToOne
-    @JoinColumn(name = "node_id", unique = true)
-    private Node node;
 }

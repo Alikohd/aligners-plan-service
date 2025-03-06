@@ -22,8 +22,8 @@ import java.util.List;
 @Table(name = "treatment_planning")
 public class TreatmentPlanning extends BaseTreatmentStep {
     @ManyToOne
-    @JoinColumn(name = "treatment_planning_id", nullable = false)
-    private TreatmentPlanning treatmentPlanning;
+    @JoinColumn(name = "result_planning_id", nullable = false)
+    private ResultPlanning resultPlanning;
 
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "collections_of_matrices_groups")

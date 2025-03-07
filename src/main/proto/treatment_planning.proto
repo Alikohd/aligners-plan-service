@@ -1,0 +1,25 @@
+syntax = "proto3";
+
+package ru.etu.grpc.treatmentplanning;
+
+option java_package = "ru.etu.grpc.treatmentplanning";
+option java_multiple_files = true;
+
+message FinalAnatomicalStructure {
+  string stl = 1;
+  string init_matrix = 2;
+  string desired_matrix = 3;
+}
+
+message TreatmentPlanningRequest {
+  repeated FinalAnatomicalStructure structures = 1;
+}
+
+message TreatmentPlanningResponse {
+  repeated string collectionsOfMatricesGroups = 1;
+  repeated string attachments = 2;
+}
+
+service TreatmentPlanningService {
+  rpc PlanTreatment(TreatmentPlanningRequest) returns (TreatmentPlanningResponse) {}
+}

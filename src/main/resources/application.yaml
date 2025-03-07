@@ -21,3 +21,6 @@ grpc:
     resultPlanningService:
       address: static://localhost:9091
       negotiationType: plaintext
+    treatmentPlanningService:
+      address: static://localhost:9092
+      negotiationType: plaintext

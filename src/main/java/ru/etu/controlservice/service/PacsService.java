@@ -8,7 +8,7 @@ import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.multipart.MultipartFile;
-import ru.etu.controlservice.model.DicomResponse;
+import ru.etu.controlservice.dto.DicomResponse;
 
 import java.io.File;
 import java.io.IOException;

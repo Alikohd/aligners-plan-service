@@ -1,0 +1,23 @@
+syntax = "proto3";
+
+package ru.etu.grpc.resultplanning;
+
+option java_package = "ru.etu.grpc.resultplanning";
+option java_multiple_files = true;
+
+message AnatomicalStructure {
+  string stl = 1;
+  string init_matrix = 2;
+}
+
+message ResultPlanningRequest {
+  repeated AnatomicalStructure structures = 1;
+}
+
+message ResultPlanningResponse {
+  repeated string desired_teeth_matrices = 1;
+}
+
+service ResultPlanningService {
+  rpc PlanResult(ResultPlanningRequest) returns (ResultPlanningResponse) {}
+}

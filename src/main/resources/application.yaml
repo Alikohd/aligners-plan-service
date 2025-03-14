@@ -6,6 +6,13 @@ spring:
       max-file-size: 256MB
       max-request-size: 256MB
       enabled: true
+  datasource:
+    url: ${DATABASE_URL}
+    username: ${DATABASE_USERNAME}
+    password: ${DATABASE_PASSWORD}
+  jpa:
+    hibernate:
+      ddl-auto: update
 
 server:
   port: 9090
@@ -20,4 +27,3 @@ s3:
     keyId: ${S3_KEY_ID}
     keySecret: ${S3_KEY_SECRET}
   bucket-name: ${S3_BUCKET_NAME}
-

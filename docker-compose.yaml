@@ -24,6 +24,28 @@ services:
       - /run/secrets/
     secrets:
       - orthanc.json
+
+  db:
+    env_file:
+      - .env
+    image: "postgres:17.3-alpine3.21"
+    environment:
+      POSTGRES_DB: ${DATABASE_NAME}
+      POSTGRES_USER: ${DATABASE_USERNAME}
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD}
+    ports:
+      - '5433:5432'
+    volumes:
+      - aligners_control_service:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U ${DATABASE_USERNAME} -d ${DATABASE_PASSWORD}" ]
+      interval: 5s
+      retries: 5
+      timeout: 3s
+
 secrets:
   orthanc.json:
     file: orthanc.json
+
+volumes:
+  aligners_control_service:

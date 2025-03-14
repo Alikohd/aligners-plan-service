@@ -3,7 +3,6 @@ package ru.etu.controlservice.service;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.MediaType;
@@ -11,17 +10,16 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.multipart.MultipartFile;
 import ru.etu.controlservice.dto.DicomDto;
-import ru.etu.controlservice.dto.PacsZipCreationDto;
+import ru.etu.controlservice.dto.DicomResponse;
 import ru.etu.controlservice.dto.PacsZipCreationRequestDto;
 import ru.etu.controlservice.exceptions.PacsOperationException;
 
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
 import java.lang.reflect.Type;
-import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.zip.ZipFile;
-import java.util.zip.ZipOutputStream;
+import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
@@ -48,8 +46,8 @@ public class PacsService {
                 });
     }
 
-    public List<DicomDto> sendInstance(MultipartFile file) {
-        List<DicomDto> responses = new ArrayList<>();
+    public List<DicomResponse> sendInstance(MultipartFile file) {
+        List<DicomResponse> responses = new ArrayList<>();
         try {
             String response = restClient.post()
                     .uri(pacsBase + "/instances")
@@ -58,7 +56,7 @@ public class PacsService {
                     .retrieve()
                     .body(String.class);
             Type listType = new TypeToken<ArrayList<DicomDto>>(){}.getType();
-            responses.addAll(new Gson().fromJson(response, listType));
+            responses.addAll(Objects.requireNonNull(new Gson().fromJson(response, listType)));
             //TODO: add study ID to table
             return responses;
         } catch (IOException e) {

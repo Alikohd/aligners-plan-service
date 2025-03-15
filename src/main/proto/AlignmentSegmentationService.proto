@@ -1,0 +1,26 @@
+syntax = "proto3";
+
+option java_package = "ru.etu.controlservice";
+option java_outer_classname = "AlignmentSegmentationServiceProto";
+
+service AlignmentSegmentation {
+
+  rpc SendCombining (CtJawRequest) returns (CombinationReply) {}
+}
+
+message AnatomicalStructure {
+  string stl = 1;
+  string init_matrix = 2;
+}
+
+message CtJawRequest {
+  string pacsBase = 1;
+  string seriesId = 2;
+  string filePathUpperStl = 3;
+  string filePathLowerStl = 4;
+  repeated string json = 5;
+}
+
+message CombinationReply {
+  repeated AnatomicalStructure structures = 1;
+}

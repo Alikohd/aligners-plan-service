@@ -1,0 +1,18 @@
+syntax = "proto3";
+
+option java_package = "ru.etu.controlservice";
+option java_outer_classname = "JawSegmentationServiceProto";
+
+service JawSegmentation {
+
+  rpc SendStlUrl (StlRequest) returns (JsonReply) {}
+}
+
+message StlRequest {
+  string filePathUpperStl = 1;
+  string filePathLowerStl = 2;
+}
+
+message JsonReply {
+  repeated string json = 1;
+}

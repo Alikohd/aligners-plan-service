@@ -14,6 +14,7 @@ import org.springframework.web.multipart.MultipartFile;
 import ru.etu.controlservice.CtMaskGrpc;
 import ru.etu.controlservice.CtMaskServiceProto;
 import ru.etu.controlservice.dto.DicomDto;
+import ru.etu.controlservice.dto.DicomResponse;
 import ru.etu.controlservice.dto.PacsZipCreationRequestDto;
 import ru.etu.controlservice.exceptions.PacsOperationException;
 
@@ -22,6 +23,7 @@ import java.io.IOException;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
@@ -61,13 +63,12 @@ public class PacsService {
                     .retrieve()
                     .body(String.class);
             Type listType = new TypeToken<ArrayList<DicomDto>>(){}.getType();
-            responses.addAll(new Gson().fromJson(response, listType));
-
+            responses.addAll(Objects.requireNonNull(new Gson().fromJson(response, listType)));
             if (!responses.isEmpty()) {
                 String maskUrl = sendToPlug(pacsBase, responses.stream().findAny().get().parentSeries());
                 //TODO: add mask series ID to table
             }
-            //TODO: add series ID to table
+            //TODO: add study ID to table
             return responses;
         } catch (IOException e) {
             throw new PacsOperationException("Can't send request to PACS server: " + file.getOriginalFilename() + " was not uploaded", e);

@@ -3,8 +3,8 @@ package ru.etu.controlservice.service;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import net.devh.boot.grpc.client.inject.GrpcClient;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.MediaType;
@@ -14,15 +14,12 @@ import org.springframework.web.multipart.MultipartFile;
 import ru.etu.controlservice.CtMaskGrpc;
 import ru.etu.controlservice.CtMaskServiceProto;
 import ru.etu.controlservice.dto.DicomDto;
-import ru.etu.controlservice.dto.DicomResponse;
 import ru.etu.controlservice.dto.PacsZipCreationRequestDto;
 import ru.etu.controlservice.dto.TreatmentCaseDto;
 import ru.etu.controlservice.entity.CtSegmentation;
-import ru.etu.controlservice.entity.Node;
 import ru.etu.controlservice.entity.Patient;
 import ru.etu.controlservice.entity.TreatmentCase;
 import ru.etu.controlservice.exceptions.PacsOperationException;
-import ru.etu.controlservice.repository.AlignmentSegRepository;
 import ru.etu.controlservice.repository.CtSegRepository;
 import ru.etu.controlservice.repository.PatientRepository;
 import ru.etu.controlservice.repository.TreatmentCaseRepository;
@@ -36,9 +33,10 @@ import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class PacsService {
 
-    @GrpcClient("CtMaskClient")
+    @GrpcClient("ctMask")
     private CtMaskGrpc.CtMaskBlockingStub ctMaskBlockingStub;
 
     private final RestClient restClient;
@@ -83,8 +81,8 @@ public class PacsService {
 
     public List<DicomDto> sendInstance(MultipartFile file, TreatmentCaseDto treatmentCaseDto) {
         List<DicomDto> responses = new ArrayList<>();
-        TreatmentCase treatmentCase = treatmentCaseRepository.findById(treatmentCaseDto.id())
-                .orElseThrow(() -> new PacsOperationException("TreatmentCase not found"));
+       /* TreatmentCase treatmentCase = treatmentCaseRepository.findById(treatmentCaseDto.id())
+                .orElseThrow(() -> new PacsOperationException("TreatmentCase not found")); */
         try {
             String response = restClient.post()
                     .uri(pacsBase + "/instances")
@@ -104,10 +102,9 @@ public class PacsService {
                 );
             }
             if (!responses.isEmpty()) {
-                String maskUrl = sendToPlug(pacsBase, responses.stream().findAny().get().parentSeries());
-                //TODO: add mask series ID to table
+                String maskUrl = sendToPlug(responses.stream().findAny().get().parentSeries());
+                log.info("Mask url: " + maskUrl);
             }
-            //TODO: add study ID to table
             return responses;
         } catch (IOException e) {
             throw new PacsOperationException("Can't send request to PACS server: " + file.getOriginalFilename() + " was not uploaded", e);
@@ -135,7 +132,7 @@ public class PacsService {
         return file.getBytes();
     }
 
-    private String sendToPlug(String pacsBase, String seriesId){
+    public String sendToPlug(String seriesId){
         CtMaskServiceProto.DicomRequest request = CtMaskServiceProto.DicomRequest.newBuilder()
                 .setPacsBase(pacsBase)
                 .setSeriesId(seriesId)

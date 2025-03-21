@@ -35,3 +35,13 @@ grpc:
     treatmentPlanningService:
       address: static://localhost:9092
       negotiationType: plaintext
+    alignmentSegmentation:
+      address: static://localhost:9093
+      negotiation-type: plaintext
+    ctMask:
+      address: static://localhost:9093
+      negotiation-type: plaintext
+    jawSegmentation:
+      address: static://localhost:9093
+      negotiation-type: plaintext
+

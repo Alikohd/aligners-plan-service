@@ -2,10 +2,10 @@ package ru.etu.controlservice.service;
 
 import lombok.RequiredArgsConstructor;
 import net.devh.boot.grpc.client.inject.GrpcClient;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import ru.etu.controlservice.AlignmentSegmentationGrpc;
-import ru.etu.controlservice.JawSegmentationGrpc;
-import ru.etu.controlservice.JawSegmentationServiceProto;
+import ru.etu.controlservice.AlignmentSegmentationServiceProto;
 
 import java.util.List;
 
@@ -13,19 +13,27 @@ import java.util.List;
 @RequiredArgsConstructor
 public class AlignmentSegmentationService {
 
-    @GrpcClient("AlignmentSegmentationClient")
+    @Value("${pacs.address.base}")
+    private String pacsBase;
+
+    @GrpcClient("alignmentSegmentation")
     private AlignmentSegmentationGrpc.AlignmentSegmentationBlockingStub stub;
 
-    private List<String> sendToPlug(String filePathUpperStl, String filePathLowerStl){
-        JawSegmentationServiceProto.StlRequest request = JawSegmentationServiceProto.StlRequest.newBuilder()
-                .setFilePathLowerStl(filePathLowerStl)
+    public List<AlignmentSegmentationServiceProto.AnatomicalStructure> sendToPlug(String seriesId,
+                                                                                   String filePathUpperStl,
+                                                                                   String filePathLowerStl,
+                                                                                   List<String> jsons){
+        AlignmentSegmentationServiceProto.CtJawRequest request = AlignmentSegmentationServiceProto.CtJawRequest.newBuilder()
+                .setPacsBase(pacsBase)
+                .setSeriesId(seriesId)
                 .setFilePathUpperStl(filePathUpperStl)
+                .setFilePathLowerStl(filePathLowerStl)
+                .addAllJson(jsons)
                 .build();
 
-        JawSegmentationServiceProto.JsonReply reply = stub.sendStlUrl(request);
+        AlignmentSegmentationServiceProto.CombinationReply reply = stub.sendCombining(request);
 
-        return reply.getJsonList();
-
+        return reply.getStructuresList();
     }
 
 }

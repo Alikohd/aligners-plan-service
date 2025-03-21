@@ -6,8 +6,6 @@ import net.devh.boot.grpc.client.inject.GrpcClient;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
-import ru.etu.controlservice.CtMaskGrpc;
-import ru.etu.controlservice.CtMaskServiceProto;
 import ru.etu.controlservice.JawSegmentationGrpc;
 import ru.etu.controlservice.JawSegmentationServiceProto;
 import ru.etu.controlservice.dto.FileDto;

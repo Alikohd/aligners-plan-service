@@ -6,13 +6,15 @@ import jakarta.persistence.IdClass;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 import ru.etu.controlservice.entity.id.NodePrevRelationId;
 
 @Entity
 @Getter
 @Setter
+@AllArgsConstructor
+@NoArgsConstructor
+@Builder
 @Table(name = "node_prev_relation")
 @IdClass(NodePrevRelationId.class)
 public class NodePrevRelation {

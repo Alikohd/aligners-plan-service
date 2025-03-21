@@ -16,7 +16,16 @@ import ru.etu.controlservice.CtMaskServiceProto;
 import ru.etu.controlservice.dto.DicomDto;
 import ru.etu.controlservice.dto.DicomResponse;
 import ru.etu.controlservice.dto.PacsZipCreationRequestDto;
+import ru.etu.controlservice.dto.TreatmentCaseDto;
+import ru.etu.controlservice.entity.CtSegmentation;
+import ru.etu.controlservice.entity.Node;
+import ru.etu.controlservice.entity.Patient;
+import ru.etu.controlservice.entity.TreatmentCase;
 import ru.etu.controlservice.exceptions.PacsOperationException;
+import ru.etu.controlservice.repository.AlignmentSegRepository;
+import ru.etu.controlservice.repository.CtSegRepository;
+import ru.etu.controlservice.repository.PatientRepository;
+import ru.etu.controlservice.repository.TreatmentCaseRepository;
 
 import java.io.File;
 import java.io.IOException;
@@ -34,8 +43,27 @@ public class PacsService {
 
     private final RestClient restClient;
 
+    private final TreatmentCaseRepository treatmentCaseService;
+
+    private final PatientRepository patientRepository;
+
+    private final CtSegRepository ctSegRepository;
+
+    private final NodeService nodeService;
+
+    private final TreatmentCaseRepository treatmentCaseRepository;
+
     @Value("${pacs.address.base}")
     private String pacsBase;
+
+    public void createCase(){
+        Patient patient = patientRepository.save(Patient.builder()
+                .build());
+        treatmentCaseRepository.save(TreatmentCase.builder()
+                        .patient(patient)
+                .build());
+
+    }
 
     public List<String> getPatientsIds() {
         return restClient.get()
@@ -53,8 +81,10 @@ public class PacsService {
                 });
     }
 
-    public List<DicomDto> sendInstance(MultipartFile file) {
+    public List<DicomDto> sendInstance(MultipartFile file, TreatmentCaseDto treatmentCaseDto) {
         List<DicomDto> responses = new ArrayList<>();
+        TreatmentCase treatmentCase = treatmentCaseRepository.findById(treatmentCaseDto.id())
+                .orElseThrow(() -> new PacsOperationException("TreatmentCase not found"));
         try {
             String response = restClient.post()
                     .uri(pacsBase + "/instances")
@@ -64,6 +94,15 @@ public class PacsService {
                     .body(String.class);
             Type listType = new TypeToken<ArrayList<DicomDto>>(){}.getType();
             responses.addAll(Objects.requireNonNull(new Gson().fromJson(response, listType)));
+            if (!responses.isEmpty()){
+                //TODO fix node creation
+                //Node node = nodeService.createStep(treatmentCase);
+                ctSegRepository.save(
+                        CtSegmentation.builder()
+                                .ctOriginal(responses.stream().findAny().get().parentSeries())
+                                .build()
+                );
+            }
             if (!responses.isEmpty()) {
                 String maskUrl = sendToPlug(pacsBase, responses.stream().findAny().get().parentSeries());
                 //TODO: add mask series ID to table

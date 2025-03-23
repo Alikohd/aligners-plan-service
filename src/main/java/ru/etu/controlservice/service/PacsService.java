@@ -10,15 +10,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.multipart.MultipartFile;
 import ru.etu.controlservice.dto.DicomDto;
-import ru.etu.controlservice.dto.DicomResponse;
 import ru.etu.controlservice.dto.PacsZipCreationRequestDto;
-import ru.etu.controlservice.dto.TreatmentCaseDto;
 import ru.etu.controlservice.entity.CtSegmentation;
-import ru.etu.controlservice.entity.Node;
 import ru.etu.controlservice.entity.Patient;
 import ru.etu.controlservice.entity.TreatmentCase;
 import ru.etu.controlservice.exceptions.PacsOperationException;
-import ru.etu.controlservice.repository.AlignmentSegRepository;
 import ru.etu.controlservice.repository.CtSegRepository;
 import ru.etu.controlservice.repository.PatientRepository;
 import ru.etu.controlservice.repository.TreatmentCaseRepository;
@@ -49,11 +45,11 @@ public class PacsService {
     @Value("${pacs.address.base}")
     private String pacsBase;
 
-    public void createCase(){
+    public void createCase() {
         Patient patient = patientRepository.save(Patient.builder()
                 .build());
         treatmentCaseRepository.save(TreatmentCase.builder()
-                        .patient(patient)
+                .patient(patient)
                 .build());
 
     }
@@ -74,9 +70,9 @@ public class PacsService {
                 });
     }
 
-    public List<DicomDto> sendInstance(MultipartFile file, TreatmentCaseDto treatmentCaseDto) {
+    public List<DicomDto> sendInstance(MultipartFile file, Long caseId) {
         List<DicomDto> responses = new ArrayList<>();
-        TreatmentCase treatmentCase = treatmentCaseRepository.findById(treatmentCaseDto.id())
+        TreatmentCase treatmentCase = treatmentCaseRepository.findById(caseId)
                 .orElseThrow(() -> new PacsOperationException("TreatmentCase not found"));
         try {
             String response = restClient.post()
@@ -85,17 +81,9 @@ public class PacsService {
                     .body(file.getBytes())
                     .retrieve()
                     .body(String.class);
-            Type listType = new TypeToken<ArrayList<DicomDto>>(){}.getType();
+            Type listType = new TypeToken<ArrayList<DicomDto>>() {
+            }.getType();
             responses.addAll(Objects.requireNonNull(new Gson().fromJson(response, listType)));
-            if (!responses.isEmpty()){
-                //TODO fix node creation
-                //Node node = nodeService.createStep(treatmentCase);
-                ctSegRepository.save(
-                        CtSegmentation.builder()
-                                .ctOriginal(responses.stream().findAny().get().parentSeries())
-                                .build()
-                );
-            }
             return responses;
         } catch (IOException e) {
             throw new PacsOperationException("Can't send request to PACS server: " + file.getOriginalFilename() + " was not uploaded", e);
@@ -109,8 +97,8 @@ public class PacsService {
                 .body(File.class);
     }
 
-    public byte[] getZippedSeries(String id){
-        String file = restClient.post()
+    public byte[] getZippedSeries(String id) {
+        return restClient.post()
                 .uri(pacsBase + "/series/" + id + "/archive")
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(new Gson().toJson(PacsZipCreationRequestDto.builder()
@@ -119,8 +107,7 @@ public class PacsService {
                         .synchronous(true)
                         .build()))
                 .retrieve()
-                .body(String.class);
-        return file.getBytes();
+                .body(byte[].class);
     }
 
 }

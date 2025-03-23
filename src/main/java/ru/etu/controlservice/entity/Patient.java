@@ -7,7 +7,11 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -27,4 +31,9 @@ public class Patient {
     @OneToMany(mappedBy = "patient")
     @Column(name = "treatment_cases")
     private List<TreatmentCase> cases = new ArrayList<>();
+
+    public void addCase(TreatmentCase tc) {
+        cases.add(tc);
+        tc.setPatient(this);
+    }
 }

@@ -1,11 +1,12 @@
 package ru.etu.controlservice.service;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.context.ApplicationContext;
-import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import ru.etu.controlservice.entity.*;
+import ru.etu.controlservice.entity.Node;
+import ru.etu.controlservice.entity.NodeNextRelation;
+import ru.etu.controlservice.entity.NodePrevRelation;
+import ru.etu.controlservice.entity.TreatmentCase;
 import ru.etu.controlservice.repository.NodeRepository;
 import ru.etu.controlservice.repository.TreatmentCaseRepository;
 

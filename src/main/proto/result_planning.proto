@@ -1,17 +1,13 @@
 syntax = "proto3";
+import "segmentation.proto";
 
 package ru.etu.grpc.resultplanning;
 
 option java_package = "ru.etu.grpc.resultplanning";
 option java_multiple_files = true;
 
-message AnatomicalStructure {
-  string stl = 1;
-  string init_matrix = 2;
-}
-
 message ResultPlanningRequest {
-  repeated AnatomicalStructure structures = 1;
+  repeated ru.etu.grpc.segmentation.AnatomicalStructure structures = 1;
 }
 
 message ResultPlanningResponse {

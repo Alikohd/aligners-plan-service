@@ -14,7 +14,7 @@ spring:
     hibernate:
       ddl-auto: update
 server:
-  port: 9090
+  port: 9099
 
 pacs:
   address:
@@ -35,3 +35,7 @@ grpc:
     treatmentPlanningService:
       address: static://localhost:9092
       negotiationType: plaintext
+    segmentationService:
+      address: static://localhost:9093
+      negotiation-type: plaintext
+

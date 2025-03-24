@@ -2,10 +2,10 @@ package ru.etu.controlservice.service;
 
 import net.devh.boot.grpc.client.inject.GrpcClient;
 import org.springframework.stereotype.Service;
-import ru.etu.grpc.resultplanning.AnatomicalStructure;
 import ru.etu.grpc.resultplanning.ResultPlanningRequest;
 import ru.etu.grpc.resultplanning.ResultPlanningResponse;
 import ru.etu.grpc.resultplanning.ResultPlanningServiceGrpc.ResultPlanningServiceBlockingStub;
+import ru.etu.grpc.segmentation.AnatomicalStructure;
 
 import java.util.List;
 

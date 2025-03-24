@@ -12,6 +12,8 @@ import ru.etu.controlservice.service.PacsService;
 import ru.etu.controlservice.service.SegmentationService;
 import ru.etu.controlservice.service.TreatmentCaseService;
 
+import java.io.IOException;
+
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("patients/{patientId}/cases/{caseId}/segmentation")
@@ -33,7 +35,20 @@ public class SegmentationController {
 //                                      @RequestParam("jawUpperStl") MultipartFile jawUpperStl,
 //                                      @RequestParam("jawLowerStl") MultipartFile jawLowerStl
     ) {
-//        TreatmentCaseDto tCase = caseService.createCase(patientId);
         return segmentationService.startCtSegmentation(patientId, caseId, ctArchive);
     }
+
+    @PostMapping("jaw")
+    public NodeDto startJawSegmentation(@PathVariable Long patientId, @PathVariable Long caseId,
+                                        @RequestParam("jawLowerStl") MultipartFile jawLowerStl,
+                                        @RequestParam("jawUpperStl") MultipartFile jawUpperStl) throws IOException {
+        return segmentationService.startJawSegmentation(patientId, caseId,
+                jawUpperStl.getInputStream(), jawLowerStl.getInputStream());
+    }
+
+    @PostMapping("alignment")
+    public NodeDto startAlignment(@PathVariable Long patientId, @PathVariable Long caseId) {
+        return segmentationService.startAlignment(patientId, caseId);
+    }
+
 }

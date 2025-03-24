@@ -4,14 +4,12 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import ru.etu.controlservice.AlignmentSegmentationServiceProto;
 import ru.etu.controlservice.dto.grpc.TreatmentPlanningDto;
-import ru.etu.controlservice.service.AlignmentSegmentationService;
-import ru.etu.controlservice.service.JawSegmentationService;
 import ru.etu.controlservice.service.PacsService;
 import ru.etu.controlservice.service.ResultPlanningClient;
+import ru.etu.controlservice.service.SegmentationClient;
 import ru.etu.controlservice.service.TreatmentPlanningClient;
-import ru.etu.grpc.resultplanning.AnatomicalStructure;
+import ru.etu.grpc.segmentation.AnatomicalStructure;
 import ru.etu.grpc.treatmentplanning.FinalAnatomicalStructure;
 
 import java.util.List;
@@ -21,24 +19,24 @@ import java.util.List;
 public class GrpcTestRunner {
 
     @Bean
-    public CommandLineRunner run(ResultPlanningClient planningResClient,
+    public CommandLineRunner run(SegmentationClient segmentationClient,
+                                 ResultPlanningClient planningResClient,
                                  TreatmentPlanningClient planningTreatClient,
-                                 PacsService pacsService,
-                                 JawSegmentationService jawSegmentationService,
-                                 AlignmentSegmentationService alignmentSegmentationService) {
+                                 PacsService pacsService
+    ) {
         return args -> {
             // Тестовые данные
             log.info("Sending pacs request");
-            String pacsResponse = pacsService.sendToPlug("testSeriesId");
-            log.info("Result: " + pacsResponse);
+            String pacsResponse = segmentationClient.segmentCt("testSeriesId");
+            log.info("Result: {}", pacsResponse);
 
             log.info("Sending jaw request");
-            List<String> jawResponse = jawSegmentationService.sendToPlug("s3://test.stl", "s3://test.stl");
-            log.info("Result: " + jawResponse);
+            List<String> jawResponse = segmentationClient.segmentJaw("s3://test.stl", "s3://test.stl");
+            log.info("Result: {}", jawResponse);
 
             log.info("Sending alignmentSeg request");
-            List<AlignmentSegmentationServiceProto.AnatomicalStructure> segResponse = alignmentSegmentationService.sendToPlug("testSeriesId", "s3://test.stl", "s3://test.stl", List.of("{sample_text: json}"));
-            log.info("Result: " + segResponse);
+            List<AnatomicalStructure> segResponse = segmentationClient.align("testSeriesId", "s3://test.stl", "s3://test.stl", List.of("{sample_text: json}"));
+            log.info("Result: {}", segResponse);
 
             AnatomicalStructure structure = AnatomicalStructure.newBuilder()
                     .setStl("s3://test.stl")

@@ -11,8 +11,6 @@ import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.multipart.MultipartFile;
-import ru.etu.controlservice.CtMaskGrpc;
-import ru.etu.controlservice.CtMaskServiceProto;
 import ru.etu.controlservice.dto.DicomDto;
 import ru.etu.controlservice.dto.PacsZipCreationRequestDto;
 import ru.etu.controlservice.dto.TreatmentCaseDto;
@@ -35,9 +33,6 @@ import java.util.Objects;
 @RequiredArgsConstructor
 @Slf4j
 public class PacsService {
-
-    @GrpcClient("ctMask")
-    private CtMaskGrpc.CtMaskBlockingStub ctMaskBlockingStub;
 
     private final RestClient restClient;
 
@@ -92,19 +87,6 @@ public class PacsService {
                     .body(String.class);
             Type listType = new TypeToken<ArrayList<DicomDto>>(){}.getType();
             responses.addAll(Objects.requireNonNull(new Gson().fromJson(response, listType)));
-            if (!responses.isEmpty()){
-                //TODO fix node creation
-                //Node node = nodeService.createStep(treatmentCase);
-                ctSegRepository.save(
-                        CtSegmentation.builder()
-                                .ctOriginal(responses.stream().findAny().get().parentSeries())
-                                .build()
-                );
-            }
-            if (!responses.isEmpty()) {
-                String maskUrl = sendToPlug(responses.stream().findAny().get().parentSeries());
-                log.info("Mask url: " + maskUrl);
-            }
             return responses;
         } catch (IOException e) {
             throw new PacsOperationException("Can't send request to PACS server: " + file.getOriginalFilename() + " was not uploaded", e);
@@ -130,17 +112,6 @@ public class PacsService {
                 .retrieve()
                 .body(String.class);
         return file.getBytes();
-    }
-
-    public String sendToPlug(String seriesId){
-        CtMaskServiceProto.DicomRequest request = CtMaskServiceProto.DicomRequest.newBuilder()
-                .setPacsBase(pacsBase)
-                .setSeriesId(seriesId)
-                .build();
-
-        CtMaskServiceProto.DicomReply reply = ctMaskBlockingStub.sendDicomUrl(request);
-
-        return reply.getSeriesId();
     }
 
 }

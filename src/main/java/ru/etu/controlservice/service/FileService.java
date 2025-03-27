@@ -2,12 +2,14 @@ package ru.etu.controlservice.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
+import net.devh.boot.grpc.client.inject.GrpcClient;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
 import ru.etu.controlservice.dto.FileDto;
 import ru.etu.controlservice.exceptions.DownloadFileException;
 import ru.etu.controlservice.repository.S3Repository;
+import ru.etu.grpc.segmentation.SegmentationServiceGrpc;
 import ru.etu.controlservice.util.UserFolderUtils;
 
 import java.io.IOException;
@@ -18,6 +20,10 @@ import java.util.UUID;
 @Service
 @RequiredArgsConstructor
 public class FileService {
+
+    @GrpcClient("JawSegmentationClient")
+    private SegmentationServiceGrpc.SegmentationServiceBlockingStub stub;
+
     private final S3Repository s3Repository;
 
     public String saveFile(InputStream file, Long patientId, Long caseId) {

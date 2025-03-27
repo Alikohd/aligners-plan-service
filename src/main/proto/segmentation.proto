@@ -1,0 +1,45 @@
+syntax = "proto3";
+
+package ru.etu.grpc.segmentation;
+
+option java_package = "ru.etu.grpc.segmentation";
+option java_multiple_files = true;
+
+service SegmentationService {
+  rpc SegmentCt (CtRequest) returns (CtResponse) {}
+  rpc SegmentJaw (JawRequest) returns (JawResponse) {}
+  rpc Align (AlignmentRequest) returns (AlignmentResponse) {}
+}
+
+message CtRequest {
+  string ctOriginal = 1;
+}
+
+message CtResponse {
+  string ctMask = 1;
+}
+
+message JawRequest {
+  string jawUpperStl = 1;
+  string jawLowerStl = 2;
+}
+
+message JawResponse {
+  repeated string jawsJson = 1;
+}
+
+message AnatomicalStructure {
+  string stl = 1;
+  string init_matrix = 2;
+}
+
+message AlignmentRequest {
+  string ctMask = 1;
+  string jaw_upper_stl = 2;
+  string jaw_lower_stl = 3;
+  repeated string jawsJson = 4;
+}
+
+message AlignmentResponse {
+  repeated AnatomicalStructure initStructures = 1;
+}

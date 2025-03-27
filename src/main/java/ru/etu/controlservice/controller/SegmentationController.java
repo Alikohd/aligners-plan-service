@@ -18,22 +18,11 @@ import java.io.IOException;
 @RequiredArgsConstructor
 @RequestMapping("patients/{patientId}/cases/{caseId}/segmentation")
 public class SegmentationController {
-    private final PacsService pacsService;
-    private final TreatmentCaseService caseService;
     private final SegmentationService segmentationService;
-
-
-//    @PostMapping(value ="ct", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-//    public String startCtSegmentation(@PathVariable Long patientId, @PathVariable Long caseId,
-//                                      @RequestParam("ctArchive") MultipartFile ctArchive) {
-//        List<DicomResponse> dicomResponses = pacsService.sendInstance(ctArchive);
-//    }
 
     @PostMapping("ct")
     public NodeDto startCtSegmentation(@PathVariable Long patientId, @PathVariable Long caseId,
                                        @RequestParam("ctArchive") MultipartFile ctArchive
-//                                      @RequestParam("jawUpperStl") MultipartFile jawUpperStl,
-//                                      @RequestParam("jawLowerStl") MultipartFile jawLowerStl
     ) {
         return segmentationService.startCtSegmentation(patientId, caseId, ctArchive);
     }

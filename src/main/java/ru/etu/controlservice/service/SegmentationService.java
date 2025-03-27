@@ -15,6 +15,7 @@ import ru.etu.controlservice.exceptions.NodesRequiredForAlignmentNotFoundExcepti
 import ru.etu.controlservice.mapper.NodeMapper;
 import ru.etu.controlservice.repository.NodeRepository;
 import ru.etu.controlservice.util.SegmentationTypeRequiredForAlignment;
+import ru.etu.grpc.segmentation.AnatomicalStructure;
 
 import java.io.InputStream;
 import java.util.Arrays;
@@ -32,16 +33,18 @@ public class SegmentationService {
     private final FileService fileService;
     private final NodeRepository nodeRepository;
     private final NodeMapper nodeMapper;
+    private final SegmentationClient segmentationClient;
 
     @Transactional
     public NodeDto startCtSegmentation(Long patientId, Long caseId, MultipartFile ctArchive) {
         TreatmentCase tCase = caseService.getCaseById(patientId, caseId);
         List<DicomDto> dicomDtos = pacsService.sendInstance(ctArchive, caseId);
         Node ctNode = nodeService.createStep(tCase);
-//        todo: запрос в сервис сегментации на кт
-        String mockSegmentationAnswer = "mockSegmentationAnswer";
-        setCtSegmentation(ctNode, dicomDtos.get(0).parentSeries(), mockSegmentationAnswer);
 
+        String ctOriginal = dicomDtos.get(0).parentSeries();
+        String ctSegmentationResponse = segmentationClient.segmentCt(ctOriginal);
+
+        setCtSegmentation(ctNode, ctOriginal, ctSegmentationResponse);
         Node persistedNode = nodeRepository.save(ctNode);
         return nodeMapper.toDto(persistedNode);
     }
@@ -53,11 +56,9 @@ public class SegmentationService {
 
         String jawUpperStlSaved = fileService.saveFile(jawUpperStl, patientId, caseId);
         String jawLowerStlSaved = fileService.saveFile(jawLowerStl, patientId, caseId);
-//        todo: запрос в сервис сегментации на челюсти
-        List<String> mockSegmentationAnswer = List.of("mockSegmentationAnswer");
+        List<String> jawSegmentationResponse = segmentationClient.segmentJaw(jawUpperStlSaved, jawLowerStlSaved);
 
-        setJawSegmentation(jawNode, jawUpperStlSaved, jawLowerStlSaved, mockSegmentationAnswer);
-
+        setJawSegmentation(jawNode, jawUpperStlSaved, jawLowerStlSaved, jawSegmentationResponse);
         Node persistedNode = nodeRepository.save(jawNode);
         return nodeMapper.toDto(persistedNode);
     }
@@ -66,7 +67,6 @@ public class SegmentationService {
     public NodeDto startAlignment(Long patientId, Long caseId) {
         TreatmentCase tCase = caseService.getCaseById(patientId, caseId);
         Node alignmentNode = nodeService.createStep(tCase);
-
         Map<SegmentationTypeRequiredForAlignment, Node> prevSegmentationNodes = Stream.iterate(alignmentNode,
                         node -> !node.getPrevNodes().isEmpty(),
                         node -> node.getPrevNodes().get(0).getPrevNode())
@@ -79,13 +79,20 @@ public class SegmentationService {
             throw new NodesRequiredForAlignmentNotFoundException("Nodes required for alignment were not found!");
         }
 
-        Node ctNode = prevSegmentationNodes.get(SegmentationTypeRequiredForAlignment.CT);
-        Node jawNode = prevSegmentationNodes.get(SegmentationTypeRequiredForAlignment.JAW);
+        CtSegmentation ctSegmentation = prevSegmentationNodes.get(SegmentationTypeRequiredForAlignment.CT).getCtSegmentation();
+        JawSegmentation jawSegmentation = prevSegmentationNodes.get(SegmentationTypeRequiredForAlignment.JAW).getJawSegmentation();
 
-        List<String> mockNStls = List.of("stlTeeth1", "stlTeeth2", "stlTeeth3");
-        List<String> mockInitMatrices = List.of("initMatrix1", "initMatrix2", "initMatrix3");
-        setAlignmentSegmentation(alignmentNode, ctNode.getCtSegmentation(), jawNode.getJawSegmentation(), mockNStls, mockInitMatrices);
+        List<AnatomicalStructure> alignmentSegmentationResponse = segmentationClient.align(ctSegmentation.getCtMask(),
+                jawSegmentation.getJawUpperStl(), jawSegmentation.getJawLowerStl(), jawSegmentation.getJawsJson());
 
+        List<String> stls = alignmentSegmentationResponse.stream()
+                .map(AnatomicalStructure::getStl)
+                .toList();
+        List<String> initMatrices = alignmentSegmentationResponse.stream()
+                .map(AnatomicalStructure::getInitMatrix)
+                .toList();
+
+        setAlignmentSegmentation(alignmentNode, ctSegmentation, jawSegmentation, stls, initMatrices);
         Node persistedNode = nodeRepository.save(alignmentNode);
         return nodeMapper.toDto(persistedNode);
     }

@@ -4,7 +4,6 @@ import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import net.devh.boot.grpc.client.inject.GrpcClient;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.MediaType;
@@ -13,8 +12,6 @@ import org.springframework.web.client.RestClient;
 import org.springframework.web.multipart.MultipartFile;
 import ru.etu.controlservice.dto.DicomDto;
 import ru.etu.controlservice.dto.PacsZipCreationRequestDto;
-import ru.etu.controlservice.dto.TreatmentCaseDto;
-import ru.etu.controlservice.entity.CtSegmentation;
 import ru.etu.controlservice.entity.Patient;
 import ru.etu.controlservice.entity.TreatmentCase;
 import ru.etu.controlservice.exceptions.PacsOperationException;
@@ -74,10 +71,10 @@ public class PacsService {
                 });
     }
 
-    public List<DicomDto> sendInstance(MultipartFile file, TreatmentCaseDto treatmentCaseDto) {
+    public List<DicomDto> sendInstance(MultipartFile file, Long caseId) {
         List<DicomDto> responses = new ArrayList<>();
-       /* TreatmentCase treatmentCase = treatmentCaseRepository.findById(treatmentCaseDto.id())
-                .orElseThrow(() -> new PacsOperationException("TreatmentCase not found")); */
+        treatmentCaseRepository.findById(caseId)
+                .orElseThrow(() -> new PacsOperationException("TreatmentCase not found"));
         try {
             String response = restClient.post()
                     .uri(pacsBase + "/instances")
@@ -85,7 +82,8 @@ public class PacsService {
                     .body(file.getBytes())
                     .retrieve()
                     .body(String.class);
-            Type listType = new TypeToken<ArrayList<DicomDto>>(){}.getType();
+            Type listType = new TypeToken<ArrayList<DicomDto>>() {
+            }.getType();
             responses.addAll(Objects.requireNonNull(new Gson().fromJson(response, listType)));
             return responses;
         } catch (IOException e) {

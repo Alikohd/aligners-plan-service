@@ -8,9 +8,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 import ru.etu.controlservice.dto.NodeDto;
-import ru.etu.controlservice.service.PacsService;
+import ru.etu.controlservice.dto.NodePairDto;
 import ru.etu.controlservice.service.SegmentationService;
-import ru.etu.controlservice.service.TreatmentCaseService;
 
 import java.io.IOException;
 
@@ -22,8 +21,7 @@ public class SegmentationController {
 
     @PostMapping("ct")
     public NodeDto startCtSegmentation(@PathVariable Long patientId, @PathVariable Long caseId,
-                                       @RequestParam("ctArchive") MultipartFile ctArchive
-    ) {
+                                       @RequestParam("ctArchive") MultipartFile ctArchive) {
         return segmentationService.startCtSegmentation(patientId, caseId, ctArchive);
     }
 
@@ -35,9 +33,17 @@ public class SegmentationController {
                 jawUpperStl.getInputStream(), jawLowerStl.getInputStream());
     }
 
+    @PostMapping("prepare")
+    public NodePairDto prepareForAlignment(@PathVariable Long patientId, @PathVariable Long caseId,
+                                           @RequestParam("ctArchive") MultipartFile ctArchive,
+                                           @RequestParam("jawLowerStl") MultipartFile jawLowerStl,
+                                           @RequestParam("jawUpperStl") MultipartFile jawUpperStl) throws IOException {
+        return segmentationService.prepareForAlignment(patientId, caseId, ctArchive,
+                jawUpperStl.getInputStream(), jawLowerStl.getInputStream());
+    }
+
     @PostMapping("alignment")
     public NodeDto startAlignment(@PathVariable Long patientId, @PathVariable Long caseId) {
         return segmentationService.startAlignment(patientId, caseId);
     }
-
 }

@@ -1,11 +1,14 @@
 package ru.etu.controlservice.service;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.core.task.TaskExecutor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import ru.etu.controlservice.dto.DicomDto;
 import ru.etu.controlservice.dto.NodeDto;
+import ru.etu.controlservice.dto.NodePairDto;
 import ru.etu.controlservice.entity.AlignmentSegmentation;
 import ru.etu.controlservice.entity.CtSegmentation;
 import ru.etu.controlservice.entity.JawSegmentation;
@@ -21,10 +24,12 @@ import java.io.InputStream;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @Service
+@Slf4j
 @RequiredArgsConstructor
 public class SegmentationService {
     private final TreatmentCaseService caseService;
@@ -34,6 +39,60 @@ public class SegmentationService {
     private final NodeRepository nodeRepository;
     private final NodeMapper nodeMapper;
     private final SegmentationClient segmentationClient;
+    private final TaskExecutor segmentationTaskExecutor;
+    private final SegmentationNodeUpdater segmentationNodeUpdater;
+
+    @Transactional
+    public NodePairDto prepareForAlignment(Long patientId, Long caseId, MultipartFile ctArchive,
+                                           InputStream jawUpperStl, InputStream jawLowerStl) {
+        TreatmentCase tCase = caseService.getCaseById(patientId, caseId);
+        Node ctNode = nodeService.createStep(tCase);
+        Node jawNode = nodeService.createStep(tCase);
+
+        List<DicomDto> dicomDtos = pacsService.sendInstance(ctArchive, caseId);
+        String ctOriginal = dicomDtos.get(0).parentSeries();
+
+        String jawUpperStlSaved = fileService.saveFile(jawUpperStl, patientId, caseId);
+        String jawLowerStlSaved = fileService.saveFile(jawLowerStl, patientId, caseId);
+
+        Node persistedCtNode = nodeRepository.save(ctNode);
+        Node persistedJawNode = nodeRepository.save(jawNode);
+
+        NodePairDto initialResult = new NodePairDto(
+                nodeMapper.toDto(persistedCtNode),
+                nodeMapper.toDto(persistedJawNode)
+        );
+
+        CompletableFuture<String> ctSegmentationFuture = CompletableFuture.supplyAsync(
+                () -> segmentationClient.segmentCt(ctOriginal), segmentationTaskExecutor
+        ).handle((result, throwable) -> {
+            if (throwable != null) {
+                log.error("CtSegmentation failed: {}", throwable.getMessage(), throwable);
+                return null;
+            }
+            return result;
+        });
+
+        CompletableFuture<List<String>> jawSegmentationFuture = CompletableFuture.supplyAsync(
+                () -> segmentationClient.segmentJaw(jawUpperStlSaved, jawLowerStlSaved), segmentationTaskExecutor
+        ).handle((result, throwable) -> {
+            if (throwable != null) {
+                log.error("JawSegmentation failed: {}", throwable.getMessage(), throwable);
+                return null;
+            }
+            return result;
+        });
+
+//        not supposed to use .join in transaction because segmentation service work takes long times to process
+        CompletableFuture.allOf(ctSegmentationFuture, jawSegmentationFuture)
+                .thenRun(() -> segmentationNodeUpdater.updateNodesWithSegmentation(
+                        persistedCtNode, persistedJawNode,
+                        ctOriginal, jawUpperStlSaved, jawLowerStlSaved,
+                        ctSegmentationFuture.join(), jawSegmentationFuture.join()
+                ));
+
+        return initialResult;
+    }
 
     @Transactional
     public NodeDto startCtSegmentation(Long patientId, Long caseId, MultipartFile ctArchive) {
@@ -44,7 +103,7 @@ public class SegmentationService {
         String ctOriginal = dicomDtos.get(0).parentSeries();
         String ctSegmentationResponse = segmentationClient.segmentCt(ctOriginal);
 
-        setCtSegmentation(ctNode, ctOriginal, ctSegmentationResponse);
+        segmentationNodeUpdater.setCtSegmentation(ctNode, ctOriginal, ctSegmentationResponse);
         Node persistedNode = nodeRepository.save(ctNode);
         return nodeMapper.toDto(persistedNode);
     }
@@ -58,7 +117,7 @@ public class SegmentationService {
         String jawLowerStlSaved = fileService.saveFile(jawLowerStl, patientId, caseId);
         List<String> jawSegmentationResponse = segmentationClient.segmentJaw(jawUpperStlSaved, jawLowerStlSaved);
 
-        setJawSegmentation(jawNode, jawUpperStlSaved, jawLowerStlSaved, jawSegmentationResponse);
+        segmentationNodeUpdater.setJawSegmentation(jawNode, jawUpperStlSaved, jawLowerStlSaved, jawSegmentationResponse);
         Node persistedNode = nodeRepository.save(jawNode);
         return nodeMapper.toDto(persistedNode);
     }
@@ -95,23 +154,6 @@ public class SegmentationService {
         setAlignmentSegmentation(alignmentNode, ctSegmentation, jawSegmentation, stls, initMatrices);
         Node persistedNode = nodeRepository.save(alignmentNode);
         return nodeMapper.toDto(persistedNode);
-    }
-
-    private void setCtSegmentation(Node node, String ctOriginal, String ctMask) {
-        CtSegmentation ctSegmentation = CtSegmentation.builder()
-                .ctOriginal(ctOriginal)
-                .ctMask(ctMask)
-                .build();
-        node.setCtSegmentation(ctSegmentation);
-    }
-
-    private void setJawSegmentation(Node node, String jawUpperStl, String jawLowerStl, List<String> jawsJson) {
-        JawSegmentation jawSegmentation = JawSegmentation.builder()
-                .jawUpperStl(jawUpperStl)
-                .jawLowerStl(jawLowerStl)
-                .jawsJson(jawsJson)
-                .build();
-        node.setJawSegmentation(jawSegmentation);
     }
 
     private void setAlignmentSegmentation(Node node, CtSegmentation ctSegmentation, JawSegmentation jawSegmentation,

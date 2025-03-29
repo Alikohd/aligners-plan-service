@@ -7,6 +7,6 @@ import ru.etu.controlservice.entity.TreatmentCase;
 import java.util.Optional;
 
 public interface TreatmentCaseRepository extends JpaRepository<TreatmentCase, Long> {
-    @EntityGraph(attributePaths = {"root"})
+    @EntityGraph("case-with-nextnodes")
     Optional<TreatmentCase> findByIdAndPatientId(Long id, Long patientId);
 }

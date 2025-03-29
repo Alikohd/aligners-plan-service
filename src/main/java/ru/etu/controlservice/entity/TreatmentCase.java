@@ -7,6 +7,9 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.NamedAttributeNode;
+import jakarta.persistence.NamedEntityGraph;
+import jakarta.persistence.NamedSubgraph;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
@@ -15,6 +18,21 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+@NamedEntityGraph(
+        name = "case-with-nextnodes",
+        attributeNodes = {
+                @NamedAttributeNode(value = "root", subgraph = "root-nodes")
+        },
+        subgraphs = {
+                @NamedSubgraph(
+                        name = "root-nodes",
+                        attributeNodes = {
+                                @NamedAttributeNode("id"),
+                                @NamedAttributeNode("nextNodes")
+                        }
+                )
+        }
+)
 @Entity
 @Getter
 @Setter

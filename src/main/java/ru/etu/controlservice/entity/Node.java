@@ -35,11 +35,11 @@ public class Node {
     @Column(nullable = false)
     private Long treatmentBranchId;
 
-    @OneToMany(mappedBy = "node", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "node", cascade = {CascadeType.PERSIST, CascadeType.REMOVE})
     @Builder.Default
     private List<NodePrevRelation> prevNodes = new ArrayList<>();
 
-    @OneToMany(mappedBy = "node", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "node", cascade = {CascadeType.PERSIST, CascadeType.REMOVE})
     @Builder.Default
     private List<NodeNextRelation> nextNodes = new ArrayList<>();
 

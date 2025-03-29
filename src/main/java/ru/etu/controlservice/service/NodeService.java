@@ -51,6 +51,7 @@ public class NodeService {
                 .orElse(startNode); // Если поток пустой, возвращаем начальный узел
     }
 
+//    todo: handle n+1 trouble?
     public Stream<Node> traverseNodes(Node startNode) {
         return Stream.iterate(
                 startNode,
@@ -67,10 +68,10 @@ public class NodeService {
                 .treatmentBranchId(previousNode.getTreatmentBranchId())
                 .build();
 
-        newNode = nodeRepository.save(newNode);
         createBidirectionalRelation(previousNode, newNode);
-
+        newNode = nodeRepository.save(newNode);
         nodeRepository.save(previousNode);
+
         return newNode;
     }
 

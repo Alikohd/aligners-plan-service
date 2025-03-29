@@ -9,8 +9,8 @@ import org.springframework.stereotype.Service;
 import ru.etu.controlservice.dto.FileDto;
 import ru.etu.controlservice.exceptions.DownloadFileException;
 import ru.etu.controlservice.repository.S3Repository;
-import ru.etu.grpc.segmentation.SegmentationServiceGrpc;
 import ru.etu.controlservice.util.UserFolderUtils;
+import ru.etu.grpc.segmentation.SegmentationServiceGrpc;
 
 import java.io.IOException;
 import java.io.InputStream;

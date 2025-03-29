@@ -11,6 +11,7 @@ import ru.etu.controlservice.repository.NodeRepository;
 import ru.etu.controlservice.repository.TreatmentCaseRepository;
 
 import java.util.Comparator;
+import java.util.Objects;
 import java.util.stream.Stream;
 
 @Service
@@ -53,11 +54,12 @@ public class NodeService {
     public Stream<Node> traverseNodes(Node startNode) {
         return Stream.iterate(
                 startNode,
-                currentNode -> !currentNode.getNextNodes().isEmpty(),
-                currentNode -> currentNode.getNextNodes().stream()
+                Objects::nonNull,
+                node -> node.getNextNodes().stream()
                         .max(Comparator.comparing(relation -> relation.getNextNode().getTreatmentBranchId()))
                         .map(NodeNextRelation::getNextNode)
-                        .orElseThrow(() -> new IllegalStateException("Unexpected empty optional in node chain")));
+                        .orElse(null)
+        );
     }
 
     private Node appendNewNode(Node previousNode) {

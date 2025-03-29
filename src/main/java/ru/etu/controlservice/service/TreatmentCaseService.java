@@ -48,7 +48,6 @@ public class TreatmentCaseService {
 
         return caseRepository.findByIdAndPatientId(caseId, patientId)
                 .orElseThrow(() -> new CaseNotFoundException(String.format("Case with id %d not found", caseId)));
-
     }
 
     public TreatmentCaseDto getCaseDtoById(Long patientId, Long caseId) {

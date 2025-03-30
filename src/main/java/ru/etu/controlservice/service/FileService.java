@@ -9,11 +9,13 @@ import org.springframework.stereotype.Service;
 import ru.etu.controlservice.dto.FileDto;
 import ru.etu.controlservice.exceptions.DownloadFileException;
 import ru.etu.controlservice.repository.S3Repository;
+import ru.etu.controlservice.util.UserFolderUtils;
 import ru.etu.grpc.segmentation.SegmentationServiceGrpc;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Paths;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -23,6 +25,13 @@ public class FileService {
     private SegmentationServiceGrpc.SegmentationServiceBlockingStub stub;
 
     private final S3Repository s3Repository;
+
+    public String saveFile(InputStream file, Long patientId, Long caseId) {
+        String fileId = UUID.randomUUID().toString().replaceAll("-", "");
+        String filePath = UserFolderUtils.addPatientFolder(patientId, caseId, fileId);
+        s3Repository.saveFile(filePath, file);
+        return filePath;
+    }
 
     @SneakyThrows
     public FileDto downloadFile(String path) {
@@ -37,9 +46,6 @@ public class FileService {
         return new FileDto(fileName, resource);
     }
 
-    public void saveFile(String path, InputStream file) {
-        s3Repository.saveFile(path, file);
-    }
 }
 
 //TODO: add user folder to path for file saving

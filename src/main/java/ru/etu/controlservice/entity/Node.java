@@ -1,10 +1,13 @@
 package ru.etu.controlservice.entity;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
@@ -32,26 +35,32 @@ public class Node {
     @Column(nullable = false)
     private Long treatmentBranchId;
 
-    @OneToMany(mappedBy = "node")
+    @OneToMany(mappedBy = "node", cascade = {CascadeType.PERSIST, CascadeType.REMOVE})
+    @Builder.Default
     private List<NodePrevRelation> prevNodes = new ArrayList<>();
 
-    @OneToMany(mappedBy = "node")
+    @OneToMany(mappedBy = "node", cascade = {CascadeType.PERSIST, CascadeType.REMOVE})
+    @Builder.Default
     private List<NodeNextRelation> nextNodes = new ArrayList<>();
 
-//    maybe redundant
-    @OneToOne(mappedBy = "node")
+    @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JoinColumn(name = "сt_segmentation_id")
     private CtSegmentation ctSegmentation;
 
-    @OneToOne(mappedBy = "node")
+    @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JoinColumn(name = "jaw_segmentation_id")
     private JawSegmentation jawSegmentation;
 
-    @OneToOne(mappedBy = "node")
+    @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JoinColumn(name = "alignment_segmentation_id")
     private AlignmentSegmentation alignmentSegmentation;
 
-    @OneToOne(mappedBy = "node")
+    @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JoinColumn(name = "result_planning_id")
     private ResultPlanning resultPlanning;
 
-    @OneToOne(mappedBy = "node")
+    @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JoinColumn(name = "treatment_planning_id")
     private TreatmentPlanning treatmentPlanning;
 
 }

@@ -11,44 +11,82 @@ import ru.etu.controlservice.repository.NodeRepository;
 import ru.etu.controlservice.repository.TreatmentCaseRepository;
 
 import java.util.Comparator;
+import java.util.Objects;
+import java.util.stream.Stream;
 
 @Service
 @RequiredArgsConstructor
 public class NodeService {
 
     private final NodeRepository nodeRepository;
-
     private final TreatmentCaseRepository treatmentCaseRepository;
 
     @Transactional
-    public Node createStep(TreatmentCase treatmentCase){
-        Node node = treatmentCase.getRoot();
-        if (node == null){
-            node = nodeRepository.save(Node.builder()
-                            .treatmentBranchId(1L)
-                    .build());
-            treatmentCase.setRoot(node);
-            treatmentCaseRepository.save(treatmentCase);
-            return node;
+    public Node createStep(TreatmentCase treatmentCase) {
+        Node rootNode = treatmentCase.getRoot();
+
+        if (rootNode == null) {
+            return createInitialNode(treatmentCase);
         }
-        while (!node.getNextNodes().isEmpty()){
-            node = node.getNextNodes().stream()
-                    .max(Comparator.comparing(nodeNextRelation -> nodeNextRelation.getNextNode().getTreatmentBranchId()))
-                    .get().getNode();
-        }
-        Node lastNode = Node.builder()
-                        .treatmentBranchId(node.getTreatmentBranchId())
-                .build();
-        node.getNextNodes().add(NodeNextRelation.builder()
-                        .node(node)
-                        .nextNode(lastNode)
-                .build());
-        lastNode.getPrevNodes().add(NodePrevRelation.builder()
-                        .node(lastNode)
-                        .prevNode(node)
-                .build());
-        nodeRepository.save(node);
-        return nodeRepository.save(lastNode);
+
+        Node lastNode = findLastNode(rootNode);
+        return appendNewNode(lastNode);
     }
 
+    private Node createInitialNode(TreatmentCase treatmentCase) {
+        Node newNode = Node.builder()
+                .treatmentBranchId(1L)
+                .build();
+
+//        Node savedNode = nodeRepository.save(newNode);
+        treatmentCase.setRoot(newNode);
+        treatmentCaseRepository.save(treatmentCase);
+
+        return newNode;
+    }
+
+    private Node findLastNode(Node startNode) {
+        return traverseNodes(startNode)
+                .reduce((first, second) -> second) // Берем последний элемент потока
+                .orElse(startNode); // Если поток пустой, возвращаем начальный узел
+    }
+
+//    todo: handle n+1 trouble?
+    public Stream<Node> traverseNodes(Node startNode) {
+        return Stream.iterate(
+                startNode,
+                Objects::nonNull,
+                node -> node.getNextNodes().stream()
+                        .max(Comparator.comparing(relation -> relation.getNextNode().getTreatmentBranchId()))
+                        .map(NodeNextRelation::getNextNode)
+                        .orElse(null)
+        );
+    }
+
+    private Node appendNewNode(Node previousNode) {
+        Node newNode = Node.builder()
+                .treatmentBranchId(previousNode.getTreatmentBranchId())
+                .build();
+
+        createBidirectionalRelation(previousNode, newNode);
+        newNode = nodeRepository.save(newNode);
+        nodeRepository.save(previousNode);
+
+        return newNode;
+    }
+
+    private void createBidirectionalRelation(Node previousNode, Node newNode) {
+        NodeNextRelation nextRelation = NodeNextRelation.builder()
+                .node(previousNode)
+                .nextNode(newNode)
+                .build();
+
+        NodePrevRelation prevRelation = NodePrevRelation.builder()
+                .node(newNode)
+                .prevNode(previousNode)
+                .build();
+
+        previousNode.getNextNodes().add(nextRelation);
+        newNode.getPrevNodes().add(prevRelation);
+    }
 }

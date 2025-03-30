@@ -31,4 +31,9 @@ public class Patient {
     @OneToMany(mappedBy = "patient")
     @Column(name = "treatment_cases")
     private List<TreatmentCase> cases = new ArrayList<>();
+
+    public void addCase(TreatmentCase tc) {
+        cases.add(tc);
+        tc.setPatient(this);
+    }
 }

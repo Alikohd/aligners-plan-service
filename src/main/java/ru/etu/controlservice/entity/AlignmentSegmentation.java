@@ -5,7 +5,10 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
@@ -15,6 +18,9 @@ import java.util.List;
 @Entity
 @Getter
 @Setter
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 @Table(name = "alignment_segmentation")
 public class AlignmentSegmentation extends BaseTreatmentStep {
     @OneToOne
@@ -26,11 +32,10 @@ public class AlignmentSegmentation extends BaseTreatmentStep {
     private JawSegmentation jawSegmentation;
 
     @JdbcTypeCode(SqlTypes.JSON)
-    @Column(name = "init_teeth_marices")
-    private List<String> initTeethMatrices;
-
-    @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "stl_tooth_refs")
     private List<String> stlToothRefs;
 
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "init_teeth_marices")
+    private List<String> initTeethMatrices;
 }

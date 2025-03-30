@@ -21,8 +21,8 @@ public class CtSegmentation extends BaseTreatmentStep {
     private String ctMask;
 
     @Builder
-    public CtSegmentation(Long id, Node node, String ctOriginal, String ctMask) {
-        super(id, node);
+    public CtSegmentation(Long id, String ctOriginal, String ctMask) {
+        super(id);
         this.ctOriginal = ctOriginal;
         this.ctMask = ctMask;
     }

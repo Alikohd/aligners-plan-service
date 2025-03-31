@@ -4,9 +4,13 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import ru.etu.controlservice.entity.AlignmentSegmentation;
 import ru.etu.controlservice.entity.CtSegmentation;
 import ru.etu.controlservice.entity.JawSegmentation;
 import ru.etu.controlservice.entity.Node;
+import ru.etu.controlservice.repository.AlignmentSegRepository;
+import ru.etu.controlservice.repository.CtSegRepository;
+import ru.etu.controlservice.repository.JawSegRepository;
 import ru.etu.controlservice.repository.NodeRepository;
 
 import java.util.List;
@@ -19,33 +23,46 @@ import java.util.List;
 @RequiredArgsConstructor
 public class SegmentationNodeUpdater {
     private final NodeRepository nodeRepository;
+    private final CtSegRepository ctSegRepository;
+    private final JawSegRepository jawSegRepository;
+    private final AlignmentSegRepository alignmentSegRepository;
 
     @Transactional
-    public void updateNodesWithSegmentation(Node ctNode, Node jawNode,
-                                            String ctOriginal, String jawUpperStlSaved, String jawLowerStlSaved,
-                                            String ctSegmentationResponse, List<String> jawSegmentationResponse) {
-        setCtSegmentation(ctNode, ctOriginal, ctSegmentationResponse);
-        setJawSegmentation(jawNode, jawUpperStlSaved, jawLowerStlSaved, jawSegmentationResponse);
-        nodeRepository.save(ctNode);
-        nodeRepository.save(jawNode);
-    }
-
-    public void setCtSegmentation(Node node, String ctOriginal, String ctMask) {
-        log.debug("Setting CtSegmentation: ctOriginal = {}, ctMask = {}", ctOriginal, ctMask);
+    public void updateCtSegmentation(Node node, String ctOriginal, String ctMask) {
         CtSegmentation ctSegmentation = CtSegmentation.builder()
                 .ctOriginal(ctOriginal)
                 .ctMask(ctMask)
                 .build();
+        ctSegRepository.save(ctSegmentation);
         node.setCtSegmentation(ctSegmentation);
+        nodeRepository.save(node);
     }
 
-    public void setJawSegmentation(Node node, String jawUpperStl, String jawLowerStl, List<String> jawsJson) {
+    @Transactional
+    public void updateJawSegmentation(Node node, String jawUpperStl, String jawLowerStl, List<String> jawsJson) {
         log.debug("Setting JawSegmentation: jawUpperStl = {}, jawLowerStl = {}, jawsJson = {}", jawUpperStl, jawLowerStl, jawsJson);
         JawSegmentation jawSegmentation = JawSegmentation.builder()
                 .jawUpperStl(jawUpperStl)
                 .jawLowerStl(jawLowerStl)
                 .jawsJson(jawsJson)
                 .build();
+        jawSegRepository.save(jawSegmentation);
         node.setJawSegmentation(jawSegmentation);
+        nodeRepository.save(node);
+    }
+
+    @Transactional
+    public void setAlignmentSegmentation(Node node, CtSegmentation ctSegmentation, JawSegmentation jawSegmentation,
+                                         List<String> stlToothRefs, List<String> initTeethMatrices) {
+        log.debug("Setting Alignment...");
+        AlignmentSegmentation alignmentSegmentation = AlignmentSegmentation.builder()
+                .ctSegmentation(ctSegmentation)
+                .jawSegmentation(jawSegmentation)
+                .initTeethMatrices(initTeethMatrices)
+                .stlToothRefs(stlToothRefs)
+                .build();
+        alignmentSegRepository.save(alignmentSegmentation);
+        node.setAlignmentSegmentation(alignmentSegmentation);
+        nodeRepository.save(node);
     }
 }

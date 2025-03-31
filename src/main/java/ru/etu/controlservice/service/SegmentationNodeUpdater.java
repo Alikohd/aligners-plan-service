@@ -8,10 +8,12 @@ import ru.etu.controlservice.entity.AlignmentSegmentation;
 import ru.etu.controlservice.entity.CtSegmentation;
 import ru.etu.controlservice.entity.JawSegmentation;
 import ru.etu.controlservice.entity.Node;
+import ru.etu.controlservice.entity.ResultPlanning;
 import ru.etu.controlservice.repository.AlignmentSegRepository;
 import ru.etu.controlservice.repository.CtSegRepository;
 import ru.etu.controlservice.repository.JawSegRepository;
 import ru.etu.controlservice.repository.NodeRepository;
+import ru.etu.controlservice.repository.ResultPlanningRepository;
 
 import java.util.List;
 
@@ -26,6 +28,7 @@ public class SegmentationNodeUpdater {
     private final CtSegRepository ctSegRepository;
     private final JawSegRepository jawSegRepository;
     private final AlignmentSegRepository alignmentSegRepository;
+    private final ResultPlanningRepository resultPlanningRepository;
 
     @Transactional
     public void updateCtSegmentation(Node node, String ctOriginal, String ctMask) {
@@ -63,6 +66,18 @@ public class SegmentationNodeUpdater {
                 .build();
         alignmentSegRepository.save(alignmentSegmentation);
         node.setAlignmentSegmentation(alignmentSegmentation);
+        nodeRepository.save(node);
+    }
+
+    @Transactional
+    public void setResultPlanning(Node node, AlignmentSegmentation alignmentSegmentation, List<String> desiredTeethMatrices) {
+        log.debug("Setting ResultPlanning...");
+        ResultPlanning resultPlanning = ResultPlanning.builder()
+                .alignmentSegmentation(alignmentSegmentation)
+                .desiredTeethMatrices(desiredTeethMatrices)
+                .build();
+        resultPlanningRepository.save(resultPlanning);
+        node.setResultPlanning(resultPlanning);
         nodeRepository.save(node);
     }
 }

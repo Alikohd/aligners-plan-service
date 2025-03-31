@@ -19,12 +19,11 @@ import ru.etu.controlservice.entity.TreatmentCase;
 import ru.etu.controlservice.exceptions.NodesRequiredForAlignmentNotFoundException;
 import ru.etu.controlservice.exceptions.StepAlreadyExistException;
 import ru.etu.controlservice.mapper.NodeMapper;
+import ru.etu.controlservice.util.NodeContentUtils;
 
 import java.io.InputStream;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 @Service
 @Slf4j
@@ -37,6 +36,7 @@ public class SegmentationService {
     private final NodeMapper nodeMapper;
     private final TaskService taskService;
     private final ObjectMapper objectMapper = new ObjectMapper();
+    private final NodeContentUtils nodeContentUtils;
     private final List<NodeType> NODES_REQUIRED_FOR_ALIGNMENT = List.of(NodeType.SEGMENTATION_CT, NodeType.SEGMENTATION_JAW);
 
     @Transactional
@@ -142,14 +142,7 @@ public class SegmentationService {
         }
 
         Node alignmentNode = nodeService.addStep(tCase);
-        Map<NodeType, Node> prevSegmentationNodes = Stream.iterate(alignmentNode,
-                        node -> !node.getPrevNodes().isEmpty(),
-                        node -> node.getPrevNodes().get(0).getPrevNode())
-                .flatMap(node -> NODES_REQUIRED_FOR_ALIGNMENT.stream()
-                        .filter(type -> type.getNodeStep(node) != null)
-                        .map(type -> Map.entry(type, node)))
-                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
-
+        Map<NodeType, Node> prevSegmentationNodes = nodeContentUtils.getPrevNodes(alignmentNode, NODES_REQUIRED_FOR_ALIGNMENT);
         if (prevSegmentationNodes.size() != NODES_REQUIRED_FOR_ALIGNMENT.size()) {
             throw new NodesRequiredForAlignmentNotFoundException("Nodes required for alignment were not found!");
         }

@@ -38,11 +38,8 @@ public class AlignmentSegmentationProcessor implements TaskProcessor {
                 throw new IllegalStateException("No Node associated with task " + task.getId());
             }
 
-            Node ctNode = nodeRepository.findByIdWithCtSegmentation(ctNodeId);
-            Node jawNode = nodeRepository.findByIdWithJawSegmentation(jawNodeId);
-
-            CtSegmentation ctSegmentation = ctNode.getCtSegmentation();
-            JawSegmentation jawSegmentation = jawNode.getJawSegmentation();
+            CtSegmentation ctSegmentation = nodeRepository.findByIdWithCtSegmentation(ctNodeId).getCtSegmentation();
+            JawSegmentation jawSegmentation = nodeRepository.findByIdWithJawSegmentation(jawNodeId).getJawSegmentation();
 
             log.info("Task {}: ctSegmentation is null: {}, jawSegmentation is null: {}",
                     task.getId(), ctSegmentation == null, jawSegmentation == null);

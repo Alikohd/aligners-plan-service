@@ -37,13 +37,14 @@ public class ResultPlanningProcessor implements TaskProcessor {
                 throw new IllegalStateException("No Node associated with task " + task.getId());
             }
 
-            AlignmentSegmentation alignmentSegmentation =
-                    nodeRepository.findByIdWithAlignmentSegmentation(alignmentNodeId).getAlignmentSegmentation();
+            Node alignmentSegmentationNode =
+                    nodeRepository.findByIdWithAlignmentSegmentation(alignmentNodeId);
 
-            if (alignmentSegmentation == null) {
+            if (alignmentSegmentationNode == null) {
                 throw new IllegalStateException("Required alignment segmentation not found");
             }
 
+            AlignmentSegmentation alignmentSegmentation = alignmentSegmentationNode.getAlignmentSegmentation();
             List<String> stls = alignmentSegmentation.getStlToothRefs();
             List<String> initTeethMatrices = alignmentSegmentation.getInitTeethMatrices();
 

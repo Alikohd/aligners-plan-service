@@ -16,7 +16,7 @@ public class TreatmentPlanningClient {
     @GrpcClient("treatmentPlanningService")
     private TreatmentPlanningServiceBlockingStub stub;
 
-    public TreatmentPlanningDto planResult(List<FinalAnatomicalStructure> structures) {
+    public TreatmentPlanningDto planTreatment(List<FinalAnatomicalStructure> structures) {
         TreatmentPlanningRequest request = TreatmentPlanningRequest.newBuilder().addAllStructures(structures).build();
         TreatmentPlanningResponse response = stub.planTreatment(request);
 

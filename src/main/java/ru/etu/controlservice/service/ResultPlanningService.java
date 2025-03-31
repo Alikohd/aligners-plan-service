@@ -20,7 +20,7 @@ import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
-public class PlanningService {
+public class ResultPlanningService {
     private final TreatmentCaseService caseService;
     private final NodeService nodeService;
     private final NodeContentUtils nodeContentUtils;

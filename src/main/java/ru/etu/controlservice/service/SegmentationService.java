@@ -1,32 +1,28 @@
 package ru.etu.controlservice.service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.core.task.TaskExecutor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import ru.etu.controlservice.dto.DicomDto;
 import ru.etu.controlservice.dto.NodeDto;
 import ru.etu.controlservice.dto.NodePairDto;
-import ru.etu.controlservice.entity.AlignmentSegmentation;
-import ru.etu.controlservice.entity.CtSegmentation;
-import ru.etu.controlservice.entity.JawSegmentation;
+import ru.etu.controlservice.dto.task.AlignmentPayload;
+import ru.etu.controlservice.dto.task.SegmentationCtPayload;
+import ru.etu.controlservice.dto.task.SegmentationJawPayload;
 import ru.etu.controlservice.entity.Node;
+import ru.etu.controlservice.entity.NodeType;
 import ru.etu.controlservice.entity.TreatmentCase;
-import ru.etu.controlservice.exceptions.CtAlreadyExistException;
-import ru.etu.controlservice.exceptions.JawAlreadyExistException;
 import ru.etu.controlservice.exceptions.NodesRequiredForAlignmentNotFoundException;
+import ru.etu.controlservice.exceptions.StepAlreadyExistException;
 import ru.etu.controlservice.mapper.NodeMapper;
-import ru.etu.controlservice.repository.NodeRepository;
-import ru.etu.controlservice.util.SegmentationTypeRequiredForAlignment;
-import ru.etu.grpc.segmentation.AnatomicalStructure;
 
 import java.io.InputStream;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -38,60 +34,45 @@ public class SegmentationService {
     private final NodeService nodeService;
     private final PacsService pacsService;
     private final FileService fileService;
-    private final NodeRepository nodeRepository;
     private final NodeMapper nodeMapper;
-    private final SegmentationClient segmentationClient;
-    private final TaskExecutor segmentationTaskExecutor;
-    private final SegmentationNodeUpdater segmentationNodeUpdater;
+    private final TaskService taskService;
+    private final ObjectMapper objectMapper = new ObjectMapper();
+    private final List<NodeType> NODES_REQUIRED_FOR_ALIGNMENT = List.of(NodeType.SEGMENTATION_CT, NodeType.SEGMENTATION_JAW);
 
     @Transactional
     public NodePairDto prepareForAlignment(Long patientId, Long caseId, MultipartFile ctArchive,
                                            InputStream jawUpperStl, InputStream jawLowerStl) {
         TreatmentCase tCase = caseService.getCaseById(patientId, caseId);
-        Node ctNode = nodeService.createStep(tCase);
-        Node jawNode = nodeService.createStep(tCase);
 
+        boolean segmentationStepAlreadyExists = nodeService.traverseNodes(tCase.getRoot())
+                .anyMatch(node -> node.getCtSegmentation() != null || node.getJawSegmentation() != null);
+        if (segmentationStepAlreadyExists) {
+            throw new StepAlreadyExistException("There is already some segmentation step in latest branch. Please use another API");
+        }
+
+        Node ctNode = nodeService.addStep(tCase);
+        Node jawNode = nodeService.addStep(tCase);
+
+//        maybe move saving into CtProcessor and JawProcessor due to long loading time (especially for PACS) in Transaction
         List<DicomDto> dicomDtos = pacsService.sendInstance(ctArchive, caseId);
-        String ctOriginal = dicomDtos.get(0).parentSeries();
-
         String jawUpperStlSaved = fileService.saveFile(jawUpperStl, patientId, caseId);
         String jawLowerStlSaved = fileService.saveFile(jawLowerStl, patientId, caseId);
-
-        Node persistedCtNode = nodeRepository.save(ctNode);
-        Node persistedJawNode = nodeRepository.save(jawNode);
+        String ctOriginal = dicomDtos.get(0).parentSeries();
 
         NodePairDto initialResult = new NodePairDto(
-                nodeMapper.toDto(persistedCtNode),
-                nodeMapper.toDto(persistedJawNode)
+                nodeMapper.toDto(ctNode),
+                nodeMapper.toDto(jawNode)
         );
 
-        CompletableFuture<String> ctSegmentationFuture = CompletableFuture.supplyAsync(
-                () -> segmentationClient.segmentCt(ctOriginal), segmentationTaskExecutor
-        ).handle((result, throwable) -> {
-            if (throwable != null) {
-                log.error("CtSegmentation failed: {}", throwable.getMessage(), throwable);
-                return null;
-            }
-            return result;
-        });
+        SegmentationCtPayload ctPayload = new SegmentationCtPayload(ctOriginal);
+        SegmentationJawPayload jawPayload = new SegmentationJawPayload(jawUpperStlSaved, jawLowerStlSaved);
 
-        CompletableFuture<List<String>> jawSegmentationFuture = CompletableFuture.supplyAsync(
-                () -> segmentationClient.segmentJaw(jawUpperStlSaved, jawLowerStlSaved), segmentationTaskExecutor
-        ).handle((result, throwable) -> {
-            if (throwable != null) {
-                log.error("JawSegmentation failed: {}", throwable.getMessage(), throwable);
-                return null;
-            }
-            return result;
-        });
-
-//        not supposed to use .join in transaction because segmentation service work takes long times to process
-        CompletableFuture.allOf(ctSegmentationFuture, jawSegmentationFuture)
-                .thenRun(() -> segmentationNodeUpdater.updateNodesWithSegmentation(
-                        persistedCtNode, persistedJawNode,
-                        ctOriginal, jawUpperStlSaved, jawLowerStlSaved,
-                        ctSegmentationFuture.join(), jawSegmentationFuture.join()
-                ));
+        try {
+            taskService.addTask(objectMapper.writeValueAsString(ctPayload), NodeType.SEGMENTATION_CT, ctNode);
+            taskService.addTask(objectMapper.writeValueAsString(jawPayload), NodeType.SEGMENTATION_JAW, jawNode);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException("Failed to serialize payload", e);
+        }
 
         return initialResult;
     }
@@ -105,18 +86,23 @@ public class SegmentationService {
                 .anyMatch(node -> node.getCtSegmentation() != null);
         log.debug("Traversing done");
         if (ctAlreadyExists) {
-            throw new CtAlreadyExistException("There is already CtSegmentation in latest branch. Use correction api to change it");
+            throw new StepAlreadyExistException("There is already CtSegmentation in latest branch. Use correction api to change it");
         }
 
-        Node ctNode = nodeService.createStep(tCase);
+        Node ctNode = nodeService.addStep(tCase);
         List<DicomDto> dicomDtos = pacsService.sendInstance(ctArchive, caseId);
-
         String ctOriginal = dicomDtos.get(0).parentSeries();
-        String ctSegmentationResponse = segmentationClient.segmentCt(ctOriginal);
 
-        segmentationNodeUpdater.setCtSegmentation(ctNode, ctOriginal, ctSegmentationResponse);
-        Node persistedNode = nodeRepository.save(ctNode);
-        return nodeMapper.toDto(persistedNode);
+        SegmentationCtPayload payload = new SegmentationCtPayload(ctOriginal);
+        String payloadJson;
+        try {
+            payloadJson = objectMapper.writeValueAsString(payload);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException("Failed to serialize payload", e);
+        }
+        taskService.addTask(payloadJson, NodeType.SEGMENTATION_CT, ctNode);
+
+        return nodeMapper.toDto(ctNode);
     }
 
     @Transactional
@@ -126,18 +112,24 @@ public class SegmentationService {
         boolean jawAlreadyExists = nodeService.traverseNodes(tCase.getRoot())
                 .anyMatch(node -> node.getJawSegmentation() != null);
         if (jawAlreadyExists) {
-            throw new JawAlreadyExistException("There is already JawSegmentation in latest branch. Use correction api to change it");
+            throw new StepAlreadyExistException("There is already JawSegmentation in latest branch. Use correction api to change it");
         }
 
-        Node jawNode = nodeService.createStep(tCase);
+        Node jawNode = nodeService.addStep(tCase);
 
         String jawUpperStlSaved = fileService.saveFile(jawUpperStl, patientId, caseId);
         String jawLowerStlSaved = fileService.saveFile(jawLowerStl, patientId, caseId);
-        List<String> jawSegmentationResponse = segmentationClient.segmentJaw(jawUpperStlSaved, jawLowerStlSaved);
 
-        segmentationNodeUpdater.setJawSegmentation(jawNode, jawUpperStlSaved, jawLowerStlSaved, jawSegmentationResponse);
-        Node persistedNode = nodeRepository.save(jawNode);
-        return nodeMapper.toDto(persistedNode);
+        SegmentationJawPayload payload = new SegmentationJawPayload(jawUpperStlSaved, jawLowerStlSaved);
+        String payloadJson;
+        try {
+            payloadJson = objectMapper.writeValueAsString(payload);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException("Failed to serialize payload", e);
+        }
+        taskService.addTask(payloadJson, NodeType.SEGMENTATION_JAW, jawNode);
+
+        return nodeMapper.toDto(jawNode);
     }
 
     @Transactional
@@ -146,48 +138,33 @@ public class SegmentationService {
         boolean alignmentAlreadyExists = nodeService.traverseNodes(tCase.getRoot())
                 .anyMatch(node -> node.getAlignmentSegmentation() != null);
         if (alignmentAlreadyExists) {
-            throw new JawAlreadyExistException("There is already Alignment in latest branch. Use correction api to change it");
+            throw new StepAlreadyExistException("There is already Alignment in latest branch. Use correction api to change it");
         }
 
-        Node alignmentNode = nodeService.createStep(tCase);
-        Map<SegmentationTypeRequiredForAlignment, Node> prevSegmentationNodes = Stream.iterate(alignmentNode,
+        Node alignmentNode = nodeService.addStep(tCase);
+        Map<NodeType, Node> prevSegmentationNodes = Stream.iterate(alignmentNode,
                         node -> !node.getPrevNodes().isEmpty(),
                         node -> node.getPrevNodes().get(0).getPrevNode())
-                .flatMap(node -> Arrays.stream(SegmentationTypeRequiredForAlignment.values())
-                        .filter(type -> type.getSegmentation(node) != null)
+                .flatMap(node -> NODES_REQUIRED_FOR_ALIGNMENT.stream()
+                        .filter(type -> type.getNodeStep(node) != null)
                         .map(type -> Map.entry(type, node)))
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 
-        if (prevSegmentationNodes.size() != SegmentationTypeRequiredForAlignment.values().length) {
+        if (prevSegmentationNodes.size() != NODES_REQUIRED_FOR_ALIGNMENT.size()) {
             throw new NodesRequiredForAlignmentNotFoundException("Nodes required for alignment were not found!");
         }
 
-        CtSegmentation ctSegmentation = prevSegmentationNodes.get(SegmentationTypeRequiredForAlignment.CT).getCtSegmentation();
-        JawSegmentation jawSegmentation = prevSegmentationNodes.get(SegmentationTypeRequiredForAlignment.JAW).getJawSegmentation();
+        AlignmentPayload payload = new AlignmentPayload(
+                prevSegmentationNodes.get(NodeType.SEGMENTATION_CT).getId(),
+                prevSegmentationNodes.get(NodeType.SEGMENTATION_JAW).getId());
 
-        List<AnatomicalStructure> alignmentSegmentationResponse = segmentationClient.align(ctSegmentation.getCtMask(),
-                jawSegmentation.getJawUpperStl(), jawSegmentation.getJawLowerStl(), jawSegmentation.getJawsJson());
+        try {
+            taskService.addTask(objectMapper.writeValueAsString(payload), NodeType.SEGMENTATION_ALIGNMENT, alignmentNode);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException("Failed to serialize payload", e);
+        }
 
-        List<String> stls = alignmentSegmentationResponse.stream()
-                .map(AnatomicalStructure::getStl)
-                .toList();
-        List<String> initMatrices = alignmentSegmentationResponse.stream()
-                .map(AnatomicalStructure::getInitMatrix)
-                .toList();
-
-        setAlignmentSegmentation(alignmentNode, ctSegmentation, jawSegmentation, stls, initMatrices);
-        Node persistedNode = nodeRepository.save(alignmentNode);
-        return nodeMapper.toDto(persistedNode);
+        return nodeMapper.toDto(alignmentNode);
     }
 
-    private void setAlignmentSegmentation(Node node, CtSegmentation ctSegmentation, JawSegmentation jawSegmentation,
-                                          List<String> stlToothRefs, List<String> initTeethMatrices) {
-        AlignmentSegmentation alignmentSegmentation = AlignmentSegmentation.builder()
-                .ctSegmentation(ctSegmentation)
-                .jawSegmentation(jawSegmentation)
-                .initTeethMatrices(initTeethMatrices)
-                .stlToothRefs(stlToothRefs)
-                .build();
-        node.setAlignmentSegmentation(alignmentSegmentation);
-    }
 }

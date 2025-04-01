@@ -22,7 +22,7 @@ public class NodeService {
     private final TreatmentCaseRepository treatmentCaseRepository;
 
     @Transactional
-    public Node createStep(TreatmentCase treatmentCase) {
+    public Node addStep(TreatmentCase treatmentCase) {
         Node rootNode = treatmentCase.getRoot();
 
         if (rootNode == null) {
@@ -38,7 +38,6 @@ public class NodeService {
                 .treatmentBranchId(1L)
                 .build();
 
-//        Node savedNode = nodeRepository.save(newNode);
         treatmentCase.setRoot(newNode);
         treatmentCaseRepository.save(treatmentCase);
 
@@ -63,7 +62,8 @@ public class NodeService {
         );
     }
 
-    private Node appendNewNode(Node previousNode) {
+    @Transactional
+    protected Node appendNewNode(Node previousNode) {
         Node newNode = Node.builder()
                 .treatmentBranchId(previousNode.getTreatmentBranchId())
                 .build();

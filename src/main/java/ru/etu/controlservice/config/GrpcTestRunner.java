@@ -55,7 +55,7 @@ public class GrpcTestRunner {
                     .build();
 
             System.out.println("Sending request...");
-            TreatmentPlanningDto treatDto = planningTreatClient.planResult(List.of(finalStructure));
+            TreatmentPlanningDto treatDto = planningTreatClient.planTreatment(List.of(finalStructure));
             System.out.println("Result: " + treatDto.collectionsOfMatricesGroups().get(5));
 
         };

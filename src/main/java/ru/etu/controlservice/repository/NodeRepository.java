@@ -12,4 +12,10 @@ public interface NodeRepository extends JpaRepository<Node, Long> {
 
     @Query("SELECT n FROM Node n LEFT JOIN FETCH n.jawSegmentation WHERE n.id = :id")
     Node findByIdWithJawSegmentation(@Param("id") Long id);
+
+    @Query("SELECT n FROM Node n LEFT JOIN FETCH n.alignmentSegmentation WHERE n.id = :id")
+    Node findByIdWithAlignmentSegmentation(@Param("id") Long id);
+
+    @Query("SELECT n FROM Node n LEFT JOIN FETCH n.resultPlanning WHERE n.id = :id")
+    Node findByIdWithResultPlanningAndAlignmentSegmentation(@Param("id") Long id);
 }

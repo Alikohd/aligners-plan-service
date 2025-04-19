@@ -11,6 +11,7 @@ import ru.etu.controlservice.service.PatientService;
 import ru.etu.controlservice.service.TreatmentCaseService;
 
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequiredArgsConstructor
@@ -20,17 +21,17 @@ public class TreatmentCaseController {
     private final PatientService patientService;
 
     @PostMapping
-    public TreatmentCaseDto addCase(@PathVariable Long patientId) {
+    public TreatmentCaseDto addCase(@PathVariable UUID patientId) {
         return caseService.createCase(patientId);
     }
 
     @GetMapping
-    public List<TreatmentCaseDto> getCases(@PathVariable Long patientId) {
+    public List<TreatmentCaseDto> getCases(@PathVariable UUID patientId) {
         return caseService.getAllCases(patientId);
     }
 
     @GetMapping("/{caseId}")
-    public TreatmentCaseDto getCase(@PathVariable Long patientId, @PathVariable Long caseId) {
+    public TreatmentCaseDto getCase(@PathVariable UUID patientId, @PathVariable UUID caseId) {
         return caseService.getCaseDtoById(patientId, caseId);
     }
 

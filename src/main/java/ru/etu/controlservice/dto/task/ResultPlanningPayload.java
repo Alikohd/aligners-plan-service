@@ -1,4 +1,6 @@
 package ru.etu.controlservice.dto.task;
 
-public record ResultPlanningPayload(Long alignmentNodeId) {
+import java.util.UUID;
+
+public record ResultPlanningPayload(UUID alignmentNodeId) {
 }

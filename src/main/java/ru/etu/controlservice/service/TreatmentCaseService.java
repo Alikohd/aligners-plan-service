@@ -13,6 +13,7 @@ import ru.etu.controlservice.repository.PatientRepository;
 import ru.etu.controlservice.repository.TreatmentCaseRepository;
 
 import java.util.List;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -21,12 +22,11 @@ public class TreatmentCaseService {
     private final TreatmentCaseRepository caseRepository;
     private final TreatmentCaseMapper caseMapper;
 
-    public TreatmentCaseDto createCase(Long patientId) {
+    public TreatmentCaseDto createCase(UUID patientId) {
         Patient patient = patientRepository.findById(patientId)
                 .orElseThrow(() -> new PatientNotFoundException(String.format("Patient with id %d not found", patientId)));
 
         Node root = new Node();
-        root.setTreatmentBranchId(0L);
 
         TreatmentCase treatmentCase = new TreatmentCase();
         treatmentCase.setRoot(root);
@@ -35,14 +35,14 @@ public class TreatmentCaseService {
         return caseMapper.entityToDto(caseRepository.save(treatmentCase));
     }
 
-    public List<TreatmentCaseDto> getAllCases(Long patientId) {
+    public List<TreatmentCaseDto> getAllCases(UUID patientId) {
         Patient patient = patientRepository.findById(patientId)
                 .orElseThrow(() -> new PatientNotFoundException(String.format("Patient with id %d not found", patientId)));
 
         return patient.getCases().stream().map(caseMapper::entityToDto).toList();
     }
 
-    public TreatmentCase getCaseById(Long patientId, Long caseId) {
+    public TreatmentCase getCaseById(UUID patientId, UUID caseId) {
         patientRepository.findById(patientId)
                 .orElseThrow(() -> new PatientNotFoundException(String.format("Patient with id %d not found", patientId)));
 
@@ -50,7 +50,7 @@ public class TreatmentCaseService {
                 .orElseThrow(() -> new CaseNotFoundException(String.format("Case with id %d not found", caseId)));
     }
 
-    public TreatmentCaseDto getCaseDtoById(Long patientId, Long caseId) {
+    public TreatmentCaseDto getCaseDtoById(UUID patientId, UUID caseId) {
         TreatmentCase treatmentCase = getCaseById(patientId, caseId);
         return caseMapper.entityToDto(treatmentCase);
     }

@@ -6,6 +6,7 @@ import ru.etu.controlservice.entity.NodeType;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -13,8 +14,8 @@ import java.util.stream.Stream;
 public class NodeContentUtils {
     public Map<NodeType, Node> getPrevNodes(Node backTraceNode, List<NodeType> requiredNodes) {
         return Stream.iterate(backTraceNode,
-                        node -> !node.getPrevNodes().isEmpty(),
-                        node -> node.getPrevNodes().get(0).getPrevNode())
+                        node -> Objects.nonNull(node.getPrevNode()),
+                        Node::getPrevNode)
                 .flatMap(node -> requiredNodes.stream()
                         .filter(type -> type.getNodeStep(node) != null)
                         .map(type -> Map.entry(type, node)))

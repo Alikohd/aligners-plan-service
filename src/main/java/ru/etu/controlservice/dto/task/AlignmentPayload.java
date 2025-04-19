@@ -1,4 +1,6 @@
 package ru.etu.controlservice.dto.task;
 
-public record AlignmentPayload(Long ctNodeId, Long jawNodeId) {
+import java.util.UUID;
+
+public record AlignmentPayload(UUID ctNodeId, UUID jawNodeId) {
 }

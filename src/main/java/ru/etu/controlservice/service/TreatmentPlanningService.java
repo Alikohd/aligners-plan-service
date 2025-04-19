@@ -18,6 +18,7 @@ import ru.etu.controlservice.util.NodeContentUtils;
 
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -32,12 +33,12 @@ public class TreatmentPlanningService {
     private final List<NodeType> NODES_REQUIRED_FOR_TREATMENT_PLANNING = List.of(NodeType.RESULT_PLANNING);
 
     @Transactional
-    public NodeDto startTreatmentPlanning(Long patientId, Long caseId) {
+    public NodeDto startTreatmentPlanning(UUID patientId, UUID caseId) {
         TreatmentCase tCase = caseService.getCaseById(patientId, caseId);
         boolean treatmentPlanningAlreadyExists = nodeService.traverseNodes(tCase.getRoot())
                 .anyMatch(node -> node.getTreatmentPlanning() != null);
         if (treatmentPlanningAlreadyExists) {
-            throw new StepAlreadyExistException("There is already TreatmentPlanning in latest branch. Use correction api to change it");
+            throw new StepAlreadyExistException("There is already TreatmentPlanning. Use correction api to change it");
         }
 
         Node treatmentPlanningNode = nodeService.addStep(tCase);

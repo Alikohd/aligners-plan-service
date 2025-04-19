@@ -18,6 +18,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.UUID;
+
 @NamedEntityGraph(
         name = "case-with-nextnodes",
         attributeNodes = {
@@ -42,8 +44,8 @@ import lombok.Setter;
 @Table(name = "treatment_case")
 public class TreatmentCase {
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE)
-    private Long id;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private UUID id;
 
     @ManyToOne
     @JoinColumn(name = "patient_id", nullable = false)

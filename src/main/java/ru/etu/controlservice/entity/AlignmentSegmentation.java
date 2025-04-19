@@ -2,6 +2,9 @@ package ru.etu.controlservice.entity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
@@ -14,6 +17,7 @@ import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
 import java.util.List;
+import java.util.UUID;
 
 @Entity
 @Getter
@@ -22,14 +26,10 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Table(name = "alignment_segmentation")
-public class AlignmentSegmentation extends BaseTreatmentStep {
-    @OneToOne
-    @JoinColumn(name = "ct_segmentation_id", nullable = false)
-    private CtSegmentation ctSegmentation;
-
-    @OneToOne
-    @JoinColumn(name = "jaw_segmentation_id", nullable = false)
-    private JawSegmentation jawSegmentation;
+public class AlignmentSegmentation {
+    @Id
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private UUID id;
 
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "stl_tooth_refs")

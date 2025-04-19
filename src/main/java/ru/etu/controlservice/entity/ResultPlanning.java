@@ -2,6 +2,9 @@ package ru.etu.controlservice.entity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
@@ -15,6 +18,7 @@ import org.hibernate.type.SqlTypes;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 @Getter
 @Setter
@@ -23,12 +27,13 @@ import java.util.List;
 @AllArgsConstructor
 @Builder
 @Table(name = "result_planning")
-public class ResultPlanning extends BaseTreatmentStep {
-    @ManyToOne
-    @JoinColumn(name = "alignment_segmentation_id", nullable = false)
-    private AlignmentSegmentation alignmentSegmentation;
+public class ResultPlanning {
+    @Id
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private UUID id;
 
     @JdbcTypeCode(SqlTypes.JSON)
+    @Builder.Default
     @Column(name = "desired_teeth_matrices")
     private List<String> desiredTeethMatrices = new ArrayList<>();
 

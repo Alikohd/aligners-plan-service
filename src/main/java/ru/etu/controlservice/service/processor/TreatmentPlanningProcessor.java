@@ -17,6 +17,7 @@ import ru.etu.controlservice.service.TreatmentPlanningClient;
 import ru.etu.grpc.treatmentplanning.FinalAnatomicalStructure;
 
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.IntStream;
 
 @Component
@@ -32,7 +33,7 @@ public class TreatmentPlanningProcessor implements TaskProcessor {
     public void process(Task task) {
         try {
             TreatmentPlanningPayload payload = objectMapper.readValue(task.getPayload(), TreatmentPlanningPayload.class);
-            Long resultPlanningId = payload.resultPlanningId();
+            UUID resultPlanningId = payload.resultPlanningId();
 
             Node treatmentPlanningNode = task.getNode();
             if (treatmentPlanningNode == null) {

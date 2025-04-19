@@ -12,6 +12,7 @@ import ru.etu.controlservice.dto.NodePairDto;
 import ru.etu.controlservice.service.SegmentationService;
 
 import java.io.IOException;
+import java.util.UUID;
 
 @RestController
 @RequiredArgsConstructor
@@ -20,13 +21,13 @@ public class SegmentationController {
     private final SegmentationService segmentationService;
 
     @PostMapping("ct")
-    public NodeDto startCtSegmentation(@PathVariable Long patientId, @PathVariable Long caseId,
+    public NodeDto startCtSegmentation(@PathVariable UUID patientId, @PathVariable UUID caseId,
                                        @RequestParam("ctArchive") MultipartFile ctArchive) {
         return segmentationService.startCtSegmentation(patientId, caseId, ctArchive);
     }
 
     @PostMapping("jaw")
-    public NodeDto startJawSegmentation(@PathVariable Long patientId, @PathVariable Long caseId,
+    public NodeDto startJawSegmentation(@PathVariable UUID patientId, @PathVariable UUID caseId,
                                         @RequestParam("jawLowerStl") MultipartFile jawLowerStl,
                                         @RequestParam("jawUpperStl") MultipartFile jawUpperStl) throws IOException {
         return segmentationService.startJawSegmentation(patientId, caseId,
@@ -34,7 +35,7 @@ public class SegmentationController {
     }
 
     @PostMapping("prepare")
-    public NodePairDto prepareForAlignment(@PathVariable Long patientId, @PathVariable Long caseId,
+    public NodePairDto prepareForAlignment(@PathVariable UUID patientId, @PathVariable UUID caseId,
                                            @RequestParam("ctArchive") MultipartFile ctArchive,
                                            @RequestParam("jawLowerStl") MultipartFile jawLowerStl,
                                            @RequestParam("jawUpperStl") MultipartFile jawUpperStl) throws IOException {
@@ -43,7 +44,7 @@ public class SegmentationController {
     }
 
     @PostMapping("alignment")
-    public NodeDto startAlignment(@PathVariable Long patientId, @PathVariable Long caseId) {
+    public NodeDto startAlignment(@PathVariable UUID patientId, @PathVariable UUID caseId) {
         return segmentationService.startAlignment(patientId, caseId);
     }
 }

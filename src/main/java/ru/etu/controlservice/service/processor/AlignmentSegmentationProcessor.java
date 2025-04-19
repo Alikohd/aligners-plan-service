@@ -16,6 +16,7 @@ import ru.etu.controlservice.service.SegmentationNodeUpdater;
 import ru.etu.grpc.segmentation.AnatomicalStructure;
 
 import java.util.List;
+import java.util.UUID;
 
 @Component
 @RequiredArgsConstructor
@@ -30,8 +31,8 @@ public class AlignmentSegmentationProcessor implements TaskProcessor {
     public void process(Task task) {
         try {
             AlignmentPayload payload = objectMapper.readValue(task.getPayload(), AlignmentPayload.class);
-            Long ctNodeId = payload.ctNodeId();
-            Long jawNodeId = payload.jawNodeId();
+            UUID ctNodeId = payload.ctNodeId();
+            UUID jawNodeId = payload.jawNodeId();
 
             Node alignmentNode = task.getNode();
             if (alignmentNode == null) {

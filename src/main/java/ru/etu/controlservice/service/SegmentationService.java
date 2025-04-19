@@ -24,6 +24,7 @@ import ru.etu.controlservice.util.NodeContentUtils;
 import java.io.InputStream;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 @Service
 @Slf4j
@@ -40,14 +41,14 @@ public class SegmentationService {
     private final List<NodeType> NODES_REQUIRED_FOR_ALIGNMENT = List.of(NodeType.SEGMENTATION_CT, NodeType.SEGMENTATION_JAW);
 
     @Transactional
-    public NodePairDto prepareForAlignment(Long patientId, Long caseId, MultipartFile ctArchive,
+    public NodePairDto prepareForAlignment(UUID patientId, UUID caseId, MultipartFile ctArchive,
                                            InputStream jawUpperStl, InputStream jawLowerStl) {
         TreatmentCase tCase = caseService.getCaseById(patientId, caseId);
 
         boolean segmentationStepAlreadyExists = nodeService.traverseNodes(tCase.getRoot())
                 .anyMatch(node -> node.getCtSegmentation() != null || node.getJawSegmentation() != null);
         if (segmentationStepAlreadyExists) {
-            throw new StepAlreadyExistException("There is already some segmentation step in latest branch. Please use another API");
+            throw new StepAlreadyExistException("There is already some segmentation. Please use another API");
         }
 
         Node ctNode = nodeService.addStep(tCase);
@@ -78,7 +79,7 @@ public class SegmentationService {
     }
 
     @Transactional
-    public NodeDto startCtSegmentation(Long patientId, Long caseId, MultipartFile ctArchive) {
+    public NodeDto startCtSegmentation(UUID patientId, UUID caseId, MultipartFile ctArchive) {
         log.debug("Starting ct segmentation");
         TreatmentCase tCase = caseService.getCaseById(patientId, caseId);
         log.debug("Case was retrieved");
@@ -86,7 +87,7 @@ public class SegmentationService {
                 .anyMatch(node -> node.getCtSegmentation() != null);
         log.debug("Traversing done");
         if (ctAlreadyExists) {
-            throw new StepAlreadyExistException("There is already CtSegmentation in latest branch. Use correction api to change it");
+            throw new StepAlreadyExistException("There is already CtSegmentation. Use correction api to change it");
         }
 
         Node ctNode = nodeService.addStep(tCase);
@@ -106,13 +107,13 @@ public class SegmentationService {
     }
 
     @Transactional
-    public NodeDto startJawSegmentation(Long patientId, Long caseId, InputStream jawUpperStl, InputStream jawLowerStl) {
+    public NodeDto startJawSegmentation(UUID patientId, UUID caseId, InputStream jawUpperStl, InputStream jawLowerStl) {
         TreatmentCase tCase = caseService.getCaseById(patientId, caseId);
 
         boolean jawAlreadyExists = nodeService.traverseNodes(tCase.getRoot())
                 .anyMatch(node -> node.getJawSegmentation() != null);
         if (jawAlreadyExists) {
-            throw new StepAlreadyExistException("There is already JawSegmentation in latest branch. Use correction api to change it");
+            throw new StepAlreadyExistException("There is already JawSegmentation. Use correction api to change it");
         }
 
         Node jawNode = nodeService.addStep(tCase);
@@ -133,12 +134,12 @@ public class SegmentationService {
     }
 
     @Transactional
-    public NodeDto startAlignment(Long patientId, Long caseId) {
+    public NodeDto startAlignment(UUID patientId, UUID caseId) {
         TreatmentCase tCase = caseService.getCaseById(patientId, caseId);
         boolean alignmentAlreadyExists = nodeService.traverseNodes(tCase.getRoot())
                 .anyMatch(node -> node.getAlignmentSegmentation() != null);
         if (alignmentAlreadyExists) {
-            throw new StepAlreadyExistException("There is already Alignment in latest branch. Use correction api to change it");
+            throw new StepAlreadyExistException("There is already Alignment. Use correction api to change it");
         }
 
         Node alignmentNode = nodeService.addStep(tCase);

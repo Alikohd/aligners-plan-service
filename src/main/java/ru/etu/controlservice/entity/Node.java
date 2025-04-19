@@ -8,17 +8,23 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.OneToOne;
+import jakarta.persistence.OrderBy;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 @Entity
 @Getter
@@ -29,19 +35,16 @@ import java.util.List;
 @Table(name = "node")
 public class Node {
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE)
-    private Long id;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private UUID id;
 
-    @Column(nullable = false)
-    private Long treatmentBranchId;
+    @ManyToOne
+    @JoinColumn(name = "prev_node_id")
+    private Node prevNode;
 
-    @OneToMany(mappedBy = "node", cascade = {CascadeType.PERSIST, CascadeType.REMOVE})
+    @OneToMany(mappedBy = "prevNode")
     @Builder.Default
-    private List<NodePrevRelation> prevNodes = new ArrayList<>();
-
-    @OneToMany(mappedBy = "node", cascade = {CascadeType.PERSIST, CascadeType.REMOVE})
-    @Builder.Default
-    private List<NodeNextRelation> nextNodes = new ArrayList<>();
+    private List<Node> nextNodes = new ArrayList<>();
 
     @OneToOne(cascade = {CascadeType.PERSIST, CascadeType.REMOVE}, fetch = FetchType.LAZY)
     @JoinColumn(name = "сt_segmentation_id")
@@ -63,4 +66,11 @@ public class Node {
     @JoinColumn(name = "treatment_planning_id")
     private TreatmentPlanning treatmentPlanning;
 
+    @CreationTimestamp
+    @Column(name = "created_at", updatable = false)
+    private LocalDateTime createdAt;
+
+    @UpdateTimestamp
+    @Column(name = "updated_at")
+    private LocalDateTime updatedAt;
 }

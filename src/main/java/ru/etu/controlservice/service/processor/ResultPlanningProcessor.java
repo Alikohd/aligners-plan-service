@@ -15,6 +15,7 @@ import ru.etu.controlservice.service.SegmentationNodeUpdater;
 import ru.etu.grpc.segmentation.AnatomicalStructure;
 
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.IntStream;
 
 @Component
@@ -30,7 +31,7 @@ public class ResultPlanningProcessor implements TaskProcessor {
     public void process(Task task) {
         try {
             ResultPlanningPayload payload = objectMapper.readValue(task.getPayload(), ResultPlanningPayload.class);
-            Long alignmentNodeId = payload.alignmentNodeId();
+            UUID alignmentNodeId = payload.alignmentNodeId();
 
             Node resultPlanningNode = task.getNode();
             if (resultPlanningNode == null) {

@@ -26,7 +26,7 @@ public class FileService {
 
     private final S3Repository s3Repository;
 
-    public String saveFile(InputStream file, Long patientId, Long caseId) {
+    public String saveFile(InputStream file, UUID patientId, UUID caseId) {
         String fileId = UUID.randomUUID().toString().replaceAll("-", "");
         String filePath = UserFolderUtils.addPatientFolder(patientId, caseId, fileId);
         s3Repository.saveFile(filePath, file);

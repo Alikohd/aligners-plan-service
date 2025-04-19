@@ -12,6 +12,7 @@ import ru.etu.controlservice.repository.TaskRepository;
 import ru.etu.controlservice.service.processor.TaskProcessor;
 
 import java.time.Instant;
+import java.util.UUID;
 
 @Component
 @Slf4j
@@ -36,19 +37,19 @@ public class TaskServiceAsyncHelper {
         }
     }
 
-    public void setTaskInProgress(Long taskId) {
+    public void setTaskInProgress(UUID taskId) {
         extracted(TaskStatus.IN_PROGRESS, taskId, null);
     }
 
-    public void setTaskCompleted(Long taskId) {
+    public void setTaskCompleted(UUID taskId) {
         extracted(TaskStatus.COMPLETED, taskId, null);
     }
 
-    public void setTaskFailed(Long taskId, Exception e) {
+    public void setTaskFailed(UUID taskId, Exception e) {
         extracted(TaskStatus.FAILED, taskId, e);
     }
 
-    private void extracted(TaskStatus taskStatus, Long taskId, Exception e) {
+    private void extracted(TaskStatus taskStatus, UUID taskId, Exception e) {
         Task task = taskRepository.findById(taskId)
                 .orElseThrow(() -> new IllegalStateException("No task found with id: " + taskId));
         if (e != null) {

@@ -15,6 +15,7 @@ import lombok.Setter;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 @Entity
 @Getter
@@ -25,11 +26,12 @@ import java.util.List;
 @Table(name = "patient")
 public class Patient {
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE)
-    private Long id;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private UUID id;
 
     @OneToMany(mappedBy = "patient")
     @Column(name = "treatment_cases")
+    @Builder.Default
     private List<TreatmentCase> cases = new ArrayList<>();
 
     public void addCase(TreatmentCase tc) {

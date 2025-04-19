@@ -1,4 +1,6 @@
 package ru.etu.controlservice.dto;
 
-public record NodeDto(Long id, Long treatmentBranchId) {
+import java.util.UUID;
+
+public record NodeDto(UUID id) {
 }

@@ -25,6 +25,7 @@ import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -71,7 +72,7 @@ public class PacsService {
                 });
     }
 
-    public List<DicomDto> sendInstance(MultipartFile file, Long caseId) {
+    public List<DicomDto> sendInstance(MultipartFile file, UUID caseId) {
         List<DicomDto> responses = new ArrayList<>();
         treatmentCaseRepository.findById(caseId)
                 .orElseThrow(() -> new PacsOperationException("TreatmentCase not found"));

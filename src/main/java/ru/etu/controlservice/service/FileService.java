@@ -21,9 +21,6 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class FileService {
 
-    @GrpcClient("JawSegmentationClient")
-    private SegmentationServiceGrpc.SegmentationServiceBlockingStub stub;
-
     private final S3Repository s3Repository;
 
     public String saveFile(InputStream file, UUID patientId, UUID caseId) {

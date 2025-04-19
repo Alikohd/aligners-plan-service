@@ -1,4 +1,4 @@
-package ru.etu.controlservice.configuration;
+package ru.etu.controlservice.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -12,8 +12,8 @@ import java.util.concurrent.ThreadPoolExecutor;
 @EnableAsync
 public class AsyncConfig {
 
-    @Bean(name = "segmentationTaskExecutor")
-    public TaskExecutor segmentationTaskExecutor() {
+    @Bean(name = "tasksExecutor")
+    public TaskExecutor taskExecutor() {
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
         executor.setCorePoolSize(5);
         executor.setMaxPoolSize(10);

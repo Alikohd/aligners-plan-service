@@ -24,7 +24,7 @@ public class TreatmentCaseService {
 
     public TreatmentCaseDto createCase(UUID patientId) {
         Patient patient = patientRepository.findById(patientId)
-                .orElseThrow(() -> new PatientNotFoundException(String.format("Patient with id %d not found", patientId)));
+                .orElseThrow(() -> new PatientNotFoundException(String.format("Patient with id %s not found", patientId)));
 
         Node root = new Node();
 
@@ -37,17 +37,17 @@ public class TreatmentCaseService {
 
     public List<TreatmentCaseDto> getAllCases(UUID patientId) {
         Patient patient = patientRepository.findById(patientId)
-                .orElseThrow(() -> new PatientNotFoundException(String.format("Patient with id %d not found", patientId)));
+                .orElseThrow(() -> new PatientNotFoundException(String.format("Patient with id %s not found", patientId)));
 
         return patient.getCases().stream().map(caseMapper::entityToDto).toList();
     }
 
     public TreatmentCase getCaseById(UUID patientId, UUID caseId) {
         patientRepository.findById(patientId)
-                .orElseThrow(() -> new PatientNotFoundException(String.format("Patient with id %d not found", patientId)));
+                .orElseThrow(() -> new PatientNotFoundException(String.format("Patient with id %s not found", patientId)));
 
         return caseRepository.findByIdAndPatientId(caseId, patientId)
-                .orElseThrow(() -> new CaseNotFoundException(String.format("Case with id %d not found", caseId)));
+                .orElseThrow(() -> new CaseNotFoundException(String.format("Case with id %s not found", caseId)));
     }
 
     public TreatmentCaseDto getCaseDtoById(UUID patientId, UUID caseId) {

@@ -58,12 +58,10 @@ public class SegmentationNodeUpdater {
     }
 
     @Transactional
-    public void setAlignmentSegmentation(Node node, CtSegmentation ctSegmentation, JawSegmentation jawSegmentation,
+    public void setAlignmentSegmentation(Node node,
                                          List<String> stlToothRefs, List<String> initTeethMatrices) {
         log.debug("Setting Alignment...");
         AlignmentSegmentation alignmentSegmentation = AlignmentSegmentation.builder()
-                .ctSegmentation(ctSegmentation)
-                .jawSegmentation(jawSegmentation)
                 .initTeethMatrices(initTeethMatrices)
                 .stlToothRefs(stlToothRefs)
                 .build();
@@ -73,10 +71,9 @@ public class SegmentationNodeUpdater {
     }
 
     @Transactional
-    public void setResultPlanning(Node node, AlignmentSegmentation alignmentSegmentation, List<String> desiredTeethMatrices) {
+    public void setResultPlanning(Node node, List<String> desiredTeethMatrices) {
         log.debug("Setting ResultPlanning...");
         ResultPlanning resultPlanning = ResultPlanning.builder()
-                .alignmentSegmentation(alignmentSegmentation)
                 .desiredTeethMatrices(desiredTeethMatrices)
                 .build();
         resultPlanningRepository.save(resultPlanning);
@@ -85,11 +82,10 @@ public class SegmentationNodeUpdater {
     }
 
     @Transactional
-    public void setTreatmentPlanning(Node node, ResultPlanning resultPlanning,
+    public void setTreatmentPlanning(Node node,
                                      List<String> collectionOfMatricesGroups, List<String> attachments) {
         log.debug("Setting TreatmentPlanning...");
         TreatmentPlanning treatmentPlanning = TreatmentPlanning.builder()
-                .resultPlanning(resultPlanning)
                 .collectionsOfMatricesGroups(collectionOfMatricesGroups)
                 .attachments(attachments)
                 .build();

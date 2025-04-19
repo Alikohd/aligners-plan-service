@@ -1,9 +1,10 @@
 package ru.etu.controlservice.service.processor;
 
+import ru.etu.controlservice.entity.Node;
 import ru.etu.controlservice.entity.NodeType;
-import ru.etu.controlservice.entity.Task;
 
 public interface TaskProcessor {
-    void process(Task task);
+    void process(Object payload, Node node);
+
     NodeType getSupportedType();
 }

@@ -1,6 +1,5 @@
 package ru.etu.controlservice.service.processor;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -10,10 +9,10 @@ import ru.etu.controlservice.entity.AlignmentSegmentation;
 import ru.etu.controlservice.entity.Node;
 import ru.etu.controlservice.entity.NodeType;
 import ru.etu.controlservice.entity.ResultPlanning;
-import ru.etu.controlservice.entity.Task;
 import ru.etu.controlservice.repository.NodeRepository;
 import ru.etu.controlservice.service.SegmentationNodeUpdater;
 import ru.etu.controlservice.service.TreatmentPlanningClient;
+import ru.etu.controlservice.util.NodeContentUtils;
 import ru.etu.grpc.treatmentplanning.FinalAnatomicalStructure;
 
 import java.util.List;
@@ -27,33 +26,35 @@ public class TreatmentPlanningProcessor implements TaskProcessor {
     private final TreatmentPlanningClient treatmentPlanningClient;
     private final SegmentationNodeUpdater segmentationNodeUpdater;
     private final NodeRepository nodeRepository;
-    private final ObjectMapper objectMapper;
+    private final NodeContentUtils nodeContentUtils;
 
     @Override
-    public void process(Task task) {
+    public void process(Object payload, Node node) {
         try {
-            TreatmentPlanningPayload payload = objectMapper.readValue(task.getPayload(), TreatmentPlanningPayload.class);
-            UUID resultPlanningId = payload.resultPlanningId();
+            TreatmentPlanningPayload treatmentPlanningPayload = (TreatmentPlanningPayload) payload;
+            UUID resultPlanningId = treatmentPlanningPayload.resultPlanningId();
 
-            Node treatmentPlanningNode = task.getNode();
-            if (treatmentPlanningNode == null) {
-                throw new IllegalStateException("No Node associated with task " + task.getId());
-            }
+            log.info("Processing TREATMENT_PLANNING for node {}: resultPlanningId={}", node.getId(), resultPlanningId);
 
-            Node resultPlanningNode =
-                    nodeRepository.findByIdWithResultPlanningAndAlignmentSegmentation(resultPlanningId);
-
-            if (resultPlanningNode == null) {
-                throw new IllegalStateException("Required result planning not found");
-            }
+            Node resultPlanningNode = nodeRepository.findByIdWithResultPlanning(resultPlanningId)
+                    .orElseThrow(() -> new IllegalStateException("ResultPlanning node not found: " + resultPlanningId));
 
             ResultPlanning resultPlanning = resultPlanningNode.getResultPlanning();
-            AlignmentSegmentation alignmentSegmentation = resultPlanning.getAlignmentSegmentation();
+            if (resultPlanning == null) {
+                throw new IllegalStateException("ResultPlanning not found for node " + resultPlanningId);
+            }
+
+            AlignmentSegmentation alignmentSegmentation = nodeContentUtils.getNodeWithType(
+                    NodeType.SEGMENTATION_ALIGNMENT, resultPlanningNode.getId()).getAlignmentSegmentation();
+            if (alignmentSegmentation == null) {
+                throw new IllegalStateException("AlignmentSegmentation not found for node " + resultPlanningId);
+            }
+
             List<String> stls = alignmentSegmentation.getStlToothRefs();
             List<String> initTeethMatrices = alignmentSegmentation.getInitTeethMatrices();
             List<String> desiredTeethMatrices = resultPlanning.getDesiredTeethMatrices();
             if (!(stls.size() == initTeethMatrices.size() && initTeethMatrices.size() == desiredTeethMatrices.size())) {
-                throw new IllegalStateException("Length of required stls and init/desired teeth matrices not match");
+                throw new IllegalStateException("Length of required stls and init/desired teeth matrices do not match");
             }
 
             List<FinalAnatomicalStructure> finalAnatomicalStructures = IntStream.range(0, stls.size())
@@ -66,16 +67,15 @@ public class TreatmentPlanningProcessor implements TaskProcessor {
 
             TreatmentPlanningDto treatmentPlanningDto = treatmentPlanningClient.planTreatment(finalAnatomicalStructures);
             if (treatmentPlanningDto == null) {
-                log.error("TreatmentPlanning returned null for task {}", task.getId());
+                log.error("TreatmentPlanning returned null for node {}", node.getId());
                 throw new RuntimeException("TreatmentPlanning returned null result");
             }
 
-            segmentationNodeUpdater.setTreatmentPlanning(treatmentPlanningNode, resultPlanning,
+            segmentationNodeUpdater.setTreatmentPlanning(node,
                     treatmentPlanningDto.collectionsOfMatricesGroups(), treatmentPlanningDto.attachments());
-
         } catch (Exception e) {
-            log.error("TreatmentPlanning failed for task {}: {}", task.getId(), e.getMessage(), e);
-            throw new RuntimeException("Failed to process TreatmentPlanning task", e);
+            log.error("Failed to process TREATMENT_PLANNING task for node {}: {}", node.getId(), e.getMessage(), e);
+            throw new RuntimeException("Failed to process TREATMENT_PLANNING task", e);
         }
     }
 

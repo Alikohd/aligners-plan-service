@@ -6,9 +6,7 @@ import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
 import ru.etu.controlservice.dto.FileDto;
-import ru.etu.controlservice.entity.File;
 import ru.etu.controlservice.exceptions.DownloadFileException;
-import ru.etu.controlservice.repository.FileRepository;
 import ru.etu.controlservice.repository.S3Repository;
 import ru.etu.controlservice.util.UserFolderUtils;
 
@@ -20,17 +18,13 @@ import java.util.UUID;
 @Service
 @RequiredArgsConstructor
 public class FileService {
-
     private final S3Repository s3Repository;
-    private final FileRepository fileRepository;
 
     public String saveFile(InputStream file, UUID patientId, UUID caseId) {
         String fileUuid = UUID.randomUUID().toString().replaceAll("-", "");
         String filePath = UserFolderUtils.addPatientFolder(patientId, caseId, fileUuid);
 
         s3Repository.saveFile(filePath, file);
-        File fileEntity = new File(filePath);
-        fileRepository.save(fileEntity);
         return filePath;
     }
 

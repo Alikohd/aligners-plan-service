@@ -2,6 +2,7 @@ package ru.etu.controlservice.service;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import ru.etu.controlservice.entity.Node;
 import ru.etu.controlservice.entity.TreatmentCase;
@@ -19,7 +20,7 @@ public class NodeService {
     private final NodeRepository nodeRepository;
     private final TreatmentCaseRepository treatmentCaseRepository;
 
-    @Transactional
+    @Transactional(propagation = Propagation.MANDATORY)
     public Node addStep(TreatmentCase treatmentCase) {
         Node rootNode = treatmentCase.getRoot();
 

@@ -45,23 +45,25 @@ public class Node {
     @Builder.Default
     private List<Node> nextNodes = new ArrayList<>();
 
-    @OneToOne(cascade = {CascadeType.PERSIST, CascadeType.REMOVE}, fetch = FetchType.LAZY)
+    @OneToOne(cascade = {CascadeType.PERSIST, CascadeType.REMOVE}, fetch = FetchType.LAZY, orphanRemoval = true)
+//    orphanRemoval - при дублировании обработки сообщения, контент часть например ctSegmentation
+//    сохраниться повторно, а в node по которой ставилась задача обновится связь на новую ctSegmentation. Старая будет "висеть"
     @JoinColumn(name = "сt_segmentation_id")
     private CtSegmentation ctSegmentation;
 
-    @OneToOne(cascade = {CascadeType.PERSIST, CascadeType.REMOVE}, fetch = FetchType.LAZY)
+    @OneToOne(cascade = {CascadeType.PERSIST, CascadeType.REMOVE}, fetch = FetchType.LAZY, orphanRemoval = true)
     @JoinColumn(name = "jaw_segmentation_id")
     private JawSegmentation jawSegmentation;
 
-    @OneToOne(cascade = {CascadeType.PERSIST, CascadeType.REMOVE}, fetch = FetchType.LAZY)
+    @OneToOne(cascade = {CascadeType.PERSIST, CascadeType.REMOVE}, fetch = FetchType.LAZY, orphanRemoval = true)
     @JoinColumn(name = "alignment_segmentation_id")
     private AlignmentSegmentation alignmentSegmentation;
 
-    @OneToOne(cascade = {CascadeType.PERSIST, CascadeType.REMOVE}, fetch = FetchType.LAZY)
+    @OneToOne(cascade = {CascadeType.PERSIST, CascadeType.REMOVE}, fetch = FetchType.LAZY, orphanRemoval = true)
     @JoinColumn(name = "result_planning_id")
     private ResultPlanning resultPlanning;
 
-    @OneToOne(cascade = {CascadeType.PERSIST, CascadeType.REMOVE}, fetch = FetchType.LAZY)
+    @OneToOne(cascade = {CascadeType.PERSIST, CascadeType.REMOVE}, fetch = FetchType.LAZY, orphanRemoval = true)
     @JoinColumn(name = "treatment_planning_id")
     private TreatmentPlanning treatmentPlanning;
 

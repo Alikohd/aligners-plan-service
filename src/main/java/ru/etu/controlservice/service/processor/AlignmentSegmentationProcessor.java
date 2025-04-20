@@ -50,8 +50,8 @@ public class AlignmentSegmentationProcessor implements TaskProcessor {
 
             List<AnatomicalStructure> alignmentSegmentationResponse = segmentationClient.align(
                     ctSegmentation.getCtMask(),
-                    jawSegmentation.getJawUpperStl(),
-                    jawSegmentation.getJawLowerStl(),
+                    jawSegmentation.getJawUpperStl().getStorageIdentifier(),
+                    jawSegmentation.getJawLowerStl().getStorageIdentifier(),
                     jawSegmentation.getJawsJson()
             );
 

@@ -2,15 +2,15 @@ package ru.etu.controlservice.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
-import net.devh.boot.grpc.client.inject.GrpcClient;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
 import ru.etu.controlservice.dto.FileDto;
+import ru.etu.controlservice.entity.File;
 import ru.etu.controlservice.exceptions.DownloadFileException;
+import ru.etu.controlservice.repository.FileRepository;
 import ru.etu.controlservice.repository.S3Repository;
 import ru.etu.controlservice.util.UserFolderUtils;
-import ru.etu.grpc.segmentation.SegmentationServiceGrpc;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -22,11 +22,15 @@ import java.util.UUID;
 public class FileService {
 
     private final S3Repository s3Repository;
+    private final FileRepository fileRepository;
 
     public String saveFile(InputStream file, UUID patientId, UUID caseId) {
-        String fileId = UUID.randomUUID().toString().replaceAll("-", "");
-        String filePath = UserFolderUtils.addPatientFolder(patientId, caseId, fileId);
+        String fileUuid = UUID.randomUUID().toString().replaceAll("-", "");
+        String filePath = UserFolderUtils.addPatientFolder(patientId, caseId, fileUuid);
+
         s3Repository.saveFile(filePath, file);
+        File fileEntity = new File(filePath);
+        fileRepository.save(fileEntity);
         return filePath;
     }
 

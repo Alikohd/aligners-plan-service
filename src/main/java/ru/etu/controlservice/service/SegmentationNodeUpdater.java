@@ -3,15 +3,19 @@ package ru.etu.controlservice.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 import ru.etu.controlservice.entity.AlignmentSegmentation;
 import ru.etu.controlservice.entity.CtSegmentation;
+import ru.etu.controlservice.entity.File;
 import ru.etu.controlservice.entity.JawSegmentation;
 import ru.etu.controlservice.entity.Node;
 import ru.etu.controlservice.entity.ResultPlanning;
 import ru.etu.controlservice.entity.TreatmentPlanning;
 import ru.etu.controlservice.repository.AlignmentSegRepository;
 import ru.etu.controlservice.repository.CtSegRepository;
+import ru.etu.controlservice.repository.FileRepository;
 import ru.etu.controlservice.repository.JawSegRepository;
 import ru.etu.controlservice.repository.NodeRepository;
 import ru.etu.controlservice.repository.ResultPlanningRepository;
@@ -32,24 +36,28 @@ public class SegmentationNodeUpdater {
     private final AlignmentSegRepository alignmentSegRepository;
     private final ResultPlanningRepository resultPlanningRepository;
     private final TreatmentPlanningRepository treatmentPlanningRepository;
+    private final FileRepository fileRepository;
 
-    @Transactional
+    @Transactional(propagation = Propagation.MANDATORY)
     public void updateCtSegmentation(Node node, String ctOriginal, String ctMask) {
+        log.debug("Транзакция активна: {}", TransactionSynchronizationManager.isActualTransactionActive());
         CtSegmentation ctSegmentation = CtSegmentation.builder()
                 .ctOriginal(ctOriginal)
                 .ctMask(ctMask)
                 .build();
-        ctSegRepository.save(ctSegmentation);
+        ctSegRepository.saveAndFlush(ctSegmentation);
         node.setCtSegmentation(ctSegmentation);
-        nodeRepository.save(node);
+        nodeRepository.saveAndFlush(node);
     }
 
     @Transactional
     public void updateJawSegmentation(Node node, String jawUpperStl, String jawLowerStl, List<String> jawsJson) {
         log.debug("Setting JawSegmentation: jawUpperStl = {}, jawLowerStl = {}, jawsJson = {}", jawUpperStl, jawLowerStl, jawsJson);
+        File jawUpperFile = fileRepository.save(new File(jawUpperStl));
+        File jawLowerFile = fileRepository.save(new File(jawLowerStl));
         JawSegmentation jawSegmentation = JawSegmentation.builder()
-                .jawUpperStl(jawUpperStl)
-                .jawLowerStl(jawLowerStl)
+                .jawUpperStl(jawUpperFile)
+                .jawLowerStl(jawLowerFile)
                 .jawsJson(jawsJson)
                 .build();
         jawSegRepository.save(jawSegmentation);

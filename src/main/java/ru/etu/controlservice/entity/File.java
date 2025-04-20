@@ -6,37 +6,27 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.annotations.UpdateTimestamp;
-import org.hibernate.type.SqlTypes;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.UUID;
 
+@Entity
 @Getter
 @Setter
-@Entity
 @NoArgsConstructor
-@AllArgsConstructor
-@Builder
-@Table(name = "result_planning")
-public class ResultPlanning {
+@Table(name = "file")
+public class File {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @JdbcTypeCode(SqlTypes.JSON)
-    @Builder.Default
-    @Column(name = "desired_teeth_matrices")
-    private List<String> desiredTeethMatrices = new ArrayList<>();
+    @Column(name = "storage-identifier")
+    private String storageIdentifier;
 
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)
@@ -45,4 +35,8 @@ public class ResultPlanning {
     @UpdateTimestamp
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
+
+    public File(String storageIdentifier) {
+        this.storageIdentifier = storageIdentifier;
+    }
 }

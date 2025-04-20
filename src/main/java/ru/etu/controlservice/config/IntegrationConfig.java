@@ -1,5 +1,6 @@
 package ru.etu.controlservice.config;
 
+import jakarta.persistence.EntityManagerFactory;
 import lombok.extern.slf4j.Slf4j;
 import org.aopalliance.aop.Advice;
 import org.springframework.context.annotation.Bean;
@@ -13,10 +14,10 @@ import org.springframework.integration.jdbc.store.channel.PostgresChannelMessage
 import org.springframework.integration.scheduling.PollerMetadata;
 import org.springframework.integration.store.MessageGroupQueue;
 import org.springframework.integration.transaction.TransactionInterceptorBuilder;
-import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessagingException;
+import org.springframework.orm.jpa.JpaTransactionManager;
 import org.springframework.retry.backoff.FixedBackOffPolicy;
 import org.springframework.retry.policy.SimpleRetryPolicy;
 import org.springframework.retry.support.RetryTemplate;
@@ -81,8 +82,10 @@ public class IntegrationConfig {
     }
 
     @Bean
-    public PlatformTransactionManager transactionManager(DataSource dataSource) {
-        return new DataSourceTransactionManager(dataSource);
+    public PlatformTransactionManager transactionManager(EntityManagerFactory emf) {
+        JpaTransactionManager transactionManager = new JpaTransactionManager();
+        transactionManager.setEntityManagerFactory(emf);
+        return transactionManager;
     }
 
     @Bean
@@ -90,6 +93,7 @@ public class IntegrationConfig {
         PollerMetadata pollerMetadata = new PollerMetadata();
         pollerMetadata.setTrigger(new PeriodicTrigger(Duration.ofSeconds(3)));
         pollerMetadata.setTaskExecutor(tasksExecutor);
+//        - из за пулла потоков, при поллинге задач, создается две транзакции вместо одной
         TransactionInterceptor transactionInterceptor = new TransactionInterceptorBuilder()
                 .transactionManager(transactionManager)
                 .build();

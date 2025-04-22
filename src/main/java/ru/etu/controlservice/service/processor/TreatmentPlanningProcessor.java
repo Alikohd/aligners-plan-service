@@ -50,7 +50,7 @@ public class TreatmentPlanningProcessor implements TaskProcessor {
                 throw new IllegalStateException("AlignmentSegmentation not found for node " + resultPlanningId);
             }
 
-            List<String> stls = alignmentSegmentation.getStlToothRefs();
+            List<String> stls = alignmentSegmentation.getToothRefs();
             List<String> initTeethMatrices = alignmentSegmentation.getInitTeethMatrices();
             List<String> desiredTeethMatrices = resultPlanning.getDesiredTeethMatrices();
             if (!(stls.size() == initTeethMatrices.size() && initTeethMatrices.size() == desiredTeethMatrices.size())) {

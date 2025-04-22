@@ -1,10 +1,13 @@
 package ru.etu.controlservice.entity;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -29,11 +32,13 @@ public class CtSegmentation {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @Column(name = "ct_original")
-    private String ctOriginal;
+    @OneToOne(cascade = CascadeType.PERSIST)
+    @JoinColumn(name = "ct_original")
+    private File ctOriginal;
 
-    @Column(name = "ct_mask")
-    private String ctMask;
+    @OneToOne(cascade = CascadeType.PERSIST)
+    @JoinColumn(name = "ct_mask")
+    private File ctMask;
 
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)

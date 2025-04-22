@@ -34,7 +34,7 @@ public class TreatmentPlanning {
 
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "collections_of_matrices_groups")
-    private List<String> collectionsOfMatricesGroups;
+    private List<String> treatmentStepMatrixGroups;
 
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "attachments")

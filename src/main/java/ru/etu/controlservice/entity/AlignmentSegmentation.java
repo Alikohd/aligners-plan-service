@@ -32,9 +32,10 @@ public class AlignmentSegmentation {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
+//    todo изменить на File
     @JdbcTypeCode(SqlTypes.JSON)
-    @Column(name = "stl_tooth_refs")
-    private List<String> stlToothRefs;
+    @Column(name = "tooth_refs")
+    private List<String> toothRefs;
 
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "init_teeth_marices")

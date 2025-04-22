@@ -1,0 +1,289 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.9.xsd">
+
+    <!-- Table: file -->
+    <changeSet id="1-create-file-table" author="you">
+        <createTable tableName="file">
+            <column name="id" type="uuid">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="created_at" type="timestamp(6)"/>
+            <column name="storage_type" type="varchar(255)"/>
+            <column name="updated_at" type="timestamp(6)"/>
+            <column name="uri" type="varchar(255)"/>
+        </createTable>
+        <sql>
+            ALTER TABLE file
+                ADD CONSTRAINT file_storage_type_check CHECK (storage_type IN ('S3', 'PACS'));
+        </sql>
+    </changeSet>
+
+    <!-- Table: ct_segmentation -->
+    <changeSet id="2-create-ct-segmentation-table" author="you">
+        <createTable tableName="ct_segmentation">
+            <column name="id" type="uuid">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="created_at" type="timestamp(6)"/>
+            <column name="updated_at" type="timestamp(6)"/>
+            <column name="ct_mask" type="uuid"/>
+            <column name="ct_original" type="uuid"/>
+        </createTable>
+        <addUniqueConstraint
+                columnNames="ct_mask"
+                tableName="ct_segmentation"
+                constraintName="uk89filckjtap86pb4lchj5y5gt"/>
+        <addUniqueConstraint
+                columnNames="ct_original"
+                tableName="ct_segmentation"
+                constraintName="ukq3kifbvtqp6ql3tahqbdc82sl"/>
+        <addForeignKeyConstraint
+                baseTableName="ct_segmentation"
+                baseColumnNames="ct_mask"
+                constraintName="fklo0g9bvrinitl4k0x3cnx6ri7"
+                referencedTableName="file"
+                referencedColumnNames="id"/>
+        <addForeignKeyConstraint
+                baseTableName="ct_segmentation"
+                baseColumnNames="ct_original"
+                constraintName="fkfso2hq9m5tvvvlrv9u2uy0daj"
+                referencedTableName="file"
+                referencedColumnNames="id"/>
+    </changeSet>
+
+    <!-- Table: alignment_segmentation -->
+    <changeSet id="3-create-alignment-segmentation-table" author="you">
+        <createTable tableName="alignment_segmentation">
+            <column name="id" type="uuid">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="created_at" type="timestamp(6)"/>
+            <column name="init_teeth_marices" type="jsonb"/>
+            <column name="tooth_refs" type="jsonb"/>
+            <column name="updated_at" type="timestamp(6)"/>
+        </createTable>
+    </changeSet>
+
+    <!-- Table: jaw_segmentation -->
+    <changeSet id="4-create-jaw-segmentation-table" author="you">
+        <createTable tableName="jaw_segmentation">
+            <column name="id" type="uuid">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="created_at" type="timestamp(6)"/>
+            <column name="jaws_segmented" type="jsonb"/>
+            <column name="updated_at" type="timestamp(6)"/>
+            <column name="jaw_lower_id" type="uuid"/>
+            <column name="jaw_upper_id" type="uuid"/>
+        </createTable>
+        <addUniqueConstraint
+                columnNames="jaw_lower_id"
+                tableName="jaw_segmentation"
+                constraintName="ukrn1usrpb487iiw0k4dpty2ly9"/>
+        <addUniqueConstraint
+                columnNames="jaw_upper_id"
+                tableName="jaw_segmentation"
+                constraintName="uk3u3cvbejclbjee9nw8pr81rj7"/>
+        <addForeignKeyConstraint
+                baseTableName="jaw_segmentation"
+                baseColumnNames="jaw_lower_id"
+                constraintName="fkcd46rlfmueo3o7ir4gbrocaml"
+                referencedTableName="file"
+                referencedColumnNames="id"/>
+        <addForeignKeyConstraint
+                baseTableName="jaw_segmentation"
+                baseColumnNames="jaw_upper_id"
+                constraintName="fkcai8imrnigg4secc1fo3yccfi"
+                referencedTableName="file"
+                referencedColumnNames="id"/>
+    </changeSet>
+
+    <!-- Table: patient -->
+    <changeSet id="5-create-patient-table" author="you">
+        <createTable tableName="patient">
+            <column name="id" type="uuid">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="created_at" type="timestamp(6)"/>
+            <column name="updated_at" type="timestamp(6)"/>
+        </createTable>
+    </changeSet>
+
+    <!-- Table: result_planning -->
+    <changeSet id="6-create-result-planning-table" author="you">
+        <createTable tableName="result_planning">
+            <column name="id" type="uuid">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="created_at" type="timestamp(6)"/>
+            <column name="desired_teeth_matrices" type="jsonb"/>
+            <column name="updated_at" type="timestamp(6)"/>
+        </createTable>
+    </changeSet>
+
+    <!-- Table: treatment_planning -->
+    <changeSet id="7-create-treatment-planning-table" author="you">
+        <createTable tableName="treatment_planning">
+            <column name="id" type="uuid">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="attachments" type="jsonb"/>
+            <column name="created_at" type="timestamp(6)"/>
+            <column name="collections_of_matrices_groups" type="jsonb"/>
+            <column name="updated_at" type="timestamp(6)"/>
+        </createTable>
+    </changeSet>
+
+    <!-- Table: node -->
+    <changeSet id="8-create-node-table" author="you">
+        <createTable tableName="node">
+            <column name="id" type="uuid">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="created_at" type="timestamp(6)"/>
+            <column name="updated_at" type="timestamp(6)"/>
+            <column name="alignment_segmentation_id" type="uuid"/>
+            <column name="сt_segmentation_id" type="uuid"/>
+            <column name="jaw_segmentation_id" type="uuid"/>
+            <column name="prev_node_id" type="uuid"/>
+            <column name="result_planning_id" type="uuid"/>
+            <column name="treatment_planning_id" type="uuid"/>
+        </createTable>
+        <addUniqueConstraint
+                columnNames="alignment_segmentation_id"
+                tableName="node"
+                constraintName="ukciu037sp04o4mgo0ht48julfp"/>
+        <addUniqueConstraint
+                columnNames="сt_segmentation_id"
+                tableName="node"
+                constraintName="ukgkalxy3m6bug1q8vxtsm2n1cy"/>
+        <addUniqueConstraint
+                columnNames="jaw_segmentation_id"
+                tableName="node"
+                constraintName="uk59xdy6llc604y1tc7om7iyra0"/>
+        <addUniqueConstraint
+                columnNames="result_planning_id"
+                tableName="node"
+                constraintName="uk19jmqgo1fo4glf1epj3191b2q"/>
+        <addUniqueConstraint
+                columnNames="treatment_planning_id"
+                tableName="node"
+                constraintName="ukbpjjmfclix98mdqucswrglmiw"/>
+        <addForeignKeyConstraint
+                baseTableName="node"
+                baseColumnNames="alignment_segmentation_id"
+                constraintName="fklf5vjmkk9wa7bintxk54xh4f"
+                referencedTableName="alignment_segmentation"
+                referencedColumnNames="id"/>
+        <addForeignKeyConstraint
+                baseTableName="node"
+                baseColumnNames="сt_segmentation_id"
+                constraintName="fklwwifdced2hejt1yrebo7hkbv"
+                referencedTableName="ct_segmentation"
+                referencedColumnNames="id"/>
+        <addForeignKeyConstraint
+                baseTableName="node"
+                baseColumnNames="jaw_segmentation_id"
+                constraintName="fkp1s6ff6m55ke8gidjmk26ia7o"
+                referencedTableName="jaw_segmentation"
+                referencedColumnNames="id"/>
+        <addForeignKeyConstraint
+                baseTableName="node"
+                baseColumnNames="prev_node_id"
+                constraintName="fk7psdivrio0emqdciwjg6x3usi"
+                referencedTableName="node"
+                referencedColumnNames="id"/>
+        <addForeignKeyConstraint
+                baseTableName="node"
+                baseColumnNames="result_planning_id"
+                constraintName="fk2t9stuxsrfw801gdfv92gq2hi"
+                referencedTableName="result_planning"
+                referencedColumnNames="id"/>
+        <addForeignKeyConstraint
+                baseTableName="node"
+                baseColumnNames="treatment_planning_id"
+                constraintName="fka02ylxhcg7i3laqncdtlc01nu"
+                referencedTableName="treatment_planning"
+                referencedColumnNames="id"/>
+    </changeSet>
+
+    <!-- Table: treatment_case -->
+    <changeSet id="9-create-treatment-case-table" author="you">
+        <createTable tableName="treatment_case">
+            <column name="id" type="uuid">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="created_at" type="timestamp(6)"/>
+            <column name="updated_at" type="timestamp(6)"/>
+            <column name="patient_id" type="uuid">
+                <constraints nullable="false"/>
+            </column>
+            <column name="root_id" type="uuid"/>
+        </createTable>
+        <addUniqueConstraint
+                columnNames="root_id"
+                tableName="treatment_case"
+                constraintName="uknvcsq4tc5j0o2n42puujbbyyx"/>
+        <addForeignKeyConstraint
+                baseTableName="treatment_case"
+                baseColumnNames="patient_id"
+                constraintName="fk27tw3obae3u222uv9xw3pe7n"
+                referencedTableName="patient"
+                referencedColumnNames="id"/>
+        <addForeignKeyConstraint
+                baseTableName="treatment_case"
+                baseColumnNames="root_id"
+                constraintName="fklsji21h7c2w21dka0fy4w8hu9"
+                referencedTableName="node"
+                referencedColumnNames="id"/>
+    </changeSet>
+
+    <changeSet id="10-create-int-channel-message" author="you">
+        <!-- Creating sequence INT_MESSAGE_SEQ -->
+        <createSequence
+                sequenceName="INT_MESSAGE_SEQ"
+                startValue="1"
+                incrementBy="1"
+                cycle="false"/>
+
+        <!-- Creating table INT_CHANNEL_MESSAGE -->
+        <createTable tableName="INT_CHANNEL_MESSAGE">
+            <column name="MESSAGE_ID" type="CHAR(36)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="GROUP_KEY" type="CHAR(36)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="CREATED_DATE" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="MESSAGE_PRIORITY" type="BIGINT"/>
+            <column name="MESSAGE_SEQUENCE" type="BIGINT" defaultValueComputed="nextval('INT_MESSAGE_SEQ')">
+                <constraints nullable="false"/>
+            </column>
+            <column name="MESSAGE_BYTES" type="BYTEA"/>
+            <column name="REGION" type="VARCHAR(100)">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <!-- Adding composite primary key -->
+        <addPrimaryKey
+                tableName="INT_CHANNEL_MESSAGE"
+                columnNames="REGION,GROUP_KEY,CREATED_DATE,MESSAGE_SEQUENCE"
+                constraintName="INT_CHANNEL_MESSAGE_PK"/>
+
+        <!-- Creating index INT_CHANNEL_MSG_DELETE_IDX -->
+        <createIndex
+                tableName="INT_CHANNEL_MESSAGE"
+                indexName="INT_CHANNEL_MSG_DELETE_IDX">
+            <column name="REGION"/>
+            <column name="GROUP_KEY"/>
+            <column name="MESSAGE_ID"/>
+        </createIndex>
+    </changeSet>
+
+</databaseChangeLog>

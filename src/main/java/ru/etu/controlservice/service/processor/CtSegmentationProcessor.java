@@ -29,7 +29,6 @@ public class CtSegmentationProcessor implements TaskProcessor {
             SegmentationCtPayload ctPayload = (SegmentationCtPayload) payload;
             String ctOriginal = ctPayload.ctOriginal();
             log.info("Processing SEGMENTATION_CT for node {}: ctOriginal={}", node.getId(), ctOriginal);
-
             String ctMask = segmentationClient.segmentCt(ctOriginal);
             segmentationNodeUpdater.updateCtSegmentation(node, ctOriginal, ctMask);
             log.debug("test");

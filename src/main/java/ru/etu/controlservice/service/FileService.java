@@ -42,6 +42,3 @@ public class FileService {
     }
 
 }
-
-//TODO: add user folder to path for file saving
-//TODO: add folders for different branches. Branch id comes from SQL DB

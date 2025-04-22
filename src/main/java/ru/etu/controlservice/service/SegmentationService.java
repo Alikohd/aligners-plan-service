@@ -55,6 +55,7 @@ public class SegmentationService {
         Node jawNode = nodeService.addStep(tCase);
 
 //        maybe move saving into CtProcessor and JawProcessor due to long loading time (especially for PACS) in Transaction
+//        likely possible with adding files validation
         List<DicomDto> dicomDtos = pacsService.sendInstance(ctArchive, caseId);
         String jawUpperStlSaved = fileService.saveFile(jawUpperStl, patientId, caseId);
         String jawLowerStlSaved = fileService.saveFile(jawLowerStl, patientId, caseId);

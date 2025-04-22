@@ -26,7 +26,6 @@ public class JawSegmentationProcessor implements TaskProcessor {
             String jawLowerStlSaved = jawPayload.jawLowerStl();
             log.info("Processing SEGMENTATION_JAW for node {}: upperStl={}, lowerStl={}",
                     node.getId(), jawUpperStlSaved, jawLowerStlSaved);
-
             List<String> jawsJson = segmentationClient.segmentJaw(jawUpperStlSaved, jawLowerStlSaved);
             segmentationNodeUpdater.updateJawSegmentation(node, jawUpperStlSaved, jawLowerStlSaved, jawsJson);
         } catch (Exception e) {

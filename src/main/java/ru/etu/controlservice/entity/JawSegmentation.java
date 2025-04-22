@@ -1,12 +1,13 @@
 package ru.etu.controlservice.entity;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -34,17 +35,17 @@ public class JawSegmentation {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @ManyToOne
-    @JoinColumn(name = "jaw_upper_stl_id")
-    private File jawUpperStl;
+    @OneToOne(cascade = CascadeType.PERSIST)
+    @JoinColumn(name = "jaw_upper_id")
+    private File jawUpper;
 
-    @ManyToOne
-    @JoinColumn(name = "jaw_lower_stl_id")
-    private File jawLowerStl;
+    @OneToOne(cascade = CascadeType.PERSIST)
+    @JoinColumn(name = "jaw_lower_id")
+    private File jawLower;
 
     @JdbcTypeCode(SqlTypes.JSON)
-    @Column(name = "jaws_json")
-    private List<String> jawsJson;
+    @Column(name = "jaws_segmented")
+    private List<String> jawsSegmented;
 
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)
@@ -53,5 +54,4 @@ public class JawSegmentation {
     @UpdateTimestamp
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
-
 }

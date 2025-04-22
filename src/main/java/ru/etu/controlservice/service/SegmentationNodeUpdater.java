@@ -15,7 +15,6 @@ import ru.etu.controlservice.entity.ResultPlanning;
 import ru.etu.controlservice.entity.TreatmentPlanning;
 import ru.etu.controlservice.repository.AlignmentSegRepository;
 import ru.etu.controlservice.repository.CtSegRepository;
-import ru.etu.controlservice.repository.FileRepository;
 import ru.etu.controlservice.repository.JawSegRepository;
 import ru.etu.controlservice.repository.NodeRepository;
 import ru.etu.controlservice.repository.ResultPlanningRepository;
@@ -36,14 +35,15 @@ public class SegmentationNodeUpdater {
     private final AlignmentSegRepository alignmentSegRepository;
     private final ResultPlanningRepository resultPlanningRepository;
     private final TreatmentPlanningRepository treatmentPlanningRepository;
-    private final FileRepository fileRepository;
 
     @Transactional(propagation = Propagation.MANDATORY)
     public void updateCtSegmentation(Node node, String ctOriginal, String ctMask) {
         log.debug("Транзакция активна: {}", TransactionSynchronizationManager.isActualTransactionActive());
+        File ctOriginalFile = File.fromPacs(ctOriginal);
+        File ctMaskFile = File.fromPacs(ctMask);
         CtSegmentation ctSegmentation = CtSegmentation.builder()
-                .ctOriginal(ctOriginal)
-                .ctMask(ctMask)
+                .ctOriginal(ctOriginalFile)
+                .ctMask(ctMaskFile)
                 .build();
         ctSegRepository.saveAndFlush(ctSegmentation);
         node.setCtSegmentation(ctSegmentation);
@@ -53,12 +53,12 @@ public class SegmentationNodeUpdater {
     @Transactional
     public void updateJawSegmentation(Node node, String jawUpperStl, String jawLowerStl, List<String> jawsJson) {
         log.debug("Setting JawSegmentation: jawUpperStl = {}, jawLowerStl = {}, jawsJson = {}", jawUpperStl, jawLowerStl, jawsJson);
-        File jawUpperFile = fileRepository.save(new File(jawUpperStl));
-        File jawLowerFile = fileRepository.save(new File(jawLowerStl));
+        File jawUpperFile = File.fromS3(jawUpperStl);
+        File jawLowerFile = File.fromS3(jawLowerStl);
         JawSegmentation jawSegmentation = JawSegmentation.builder()
-                .jawUpperStl(jawUpperFile)
-                .jawLowerStl(jawLowerFile)
-                .jawsJson(jawsJson)
+                .jawUpper(jawUpperFile)
+                .jawLower(jawLowerFile)
+                .jawsSegmented(jawsJson)
                 .build();
         jawSegRepository.save(jawSegmentation);
         node.setJawSegmentation(jawSegmentation);
@@ -71,7 +71,7 @@ public class SegmentationNodeUpdater {
         log.debug("Setting Alignment...");
         AlignmentSegmentation alignmentSegmentation = AlignmentSegmentation.builder()
                 .initTeethMatrices(initTeethMatrices)
-                .stlToothRefs(stlToothRefs)
+                .toothRefs(stlToothRefs)
                 .build();
         alignmentSegRepository.save(alignmentSegmentation);
         node.setAlignmentSegmentation(alignmentSegmentation);
@@ -94,7 +94,7 @@ public class SegmentationNodeUpdater {
                                      List<String> collectionOfMatricesGroups, List<String> attachments) {
         log.debug("Setting TreatmentPlanning...");
         TreatmentPlanning treatmentPlanning = TreatmentPlanning.builder()
-                .collectionsOfMatricesGroups(collectionOfMatricesGroups)
+                .treatmentStepMatrixGroups(collectionOfMatricesGroups)
                 .attachments(attachments)
                 .build();
         treatmentPlanningRepository.save(treatmentPlanning);

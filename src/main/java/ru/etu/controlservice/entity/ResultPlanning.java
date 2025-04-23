@@ -1,5 +1,6 @@
 package ru.etu.controlservice.entity;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -36,7 +37,7 @@ public class ResultPlanning {
     @JdbcTypeCode(SqlTypes.JSON)
     @Builder.Default
     @Column(name = "desired_teeth_matrices")
-    private List<String> desiredTeethMatrices = new ArrayList<>();
+    private List<JsonNode> desiredTeethMatrices = new ArrayList<>();
 
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)

@@ -1,6 +1,7 @@
 package ru.etu.controlservice.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -51,8 +52,8 @@ public class SegmentationService {
             throw new StepAlreadyExistException("There is already some segmentation. Please use another API");
         }
 
-        Node ctNode = nodeService.addStep(tCase);
-        Node jawNode = nodeService.addStep(tCase);
+        Node ctNode = nodeService.addStepToEnd(tCase);
+        Node jawNode = nodeService.addStepToEnd(tCase);
 
 //        maybe move saving into CtProcessor and JawProcessor due to long loading time (especially for PACS) in Transaction
 //        likely possible with adding files validation
@@ -91,47 +92,73 @@ public class SegmentationService {
             throw new StepAlreadyExistException("There is already CtSegmentation. Use correction api to change it");
         }
 
-        Node ctNode = nodeService.addStep(tCase);
-        List<DicomDto> dicomDtos = pacsService.sendInstance(ctArchive, caseId);
-        String ctOriginal = dicomDtos.get(0).parentSeries();
+        Node ctNode = nodeService.addStepToEnd(tCase);
+        return pendCtTask(caseId, ctArchive, ctNode);
+    }
 
-        SegmentationCtPayload payload = new SegmentationCtPayload(ctOriginal);
-        String payloadJson;
-        try {
-            payloadJson = objectMapper.writeValueAsString(payload);
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException("Failed to serialize payload", e);
-        }
-        taskService.addTask(payloadJson, NodeType.SEGMENTATION_CT, ctNode);
+    public NodeDto adjustCtInline(UUID patientId, UUID caseId, UUID nodeId, MultipartFile amendedCtMask) {
+        caseService.getCaseById(patientId, caseId); // for validation
+        Node currentCtNode = nodeService.getNode(nodeId);
 
-        return nodeMapper.toDto(ctNode);
+        List<DicomDto> dicomDtos = pacsService.sendInstance(amendedCtMask, caseId);
+        String ctCorrected = dicomDtos.get(0).parentSeries();
+        currentCtNode.getCtSegmentation().getCtMask().setUri(ctCorrected);
+
+        Node updatedNode = nodeService.updateNode(currentCtNode);
+        return nodeMapper.toDto(updatedNode);
+    }
+
+    @Transactional
+    public NodeDto adjustCt(UUID patientId, UUID caseId, UUID nodeId, MultipartFile ctArchive) {
+        caseService.getCaseById(patientId, caseId);
+        Node currentCtNode = nodeService.getNode(nodeId);
+        Node newNode = nodeService.addStepTo(currentCtNode.getPrevNode());
+        return pendCtTask(caseId, ctArchive, newNode);
+    }
+
+    public NodeDto adjustJawInline(UUID patientId, UUID caseId, UUID nodeId, List<JsonNode> amendedJawsSegmented) {
+        caseService.getCaseById(patientId, caseId);
+        Node currentJawNode = nodeService.getNode(nodeId);
+        currentJawNode.getJawSegmentation().setJawsSegmented(amendedJawsSegmented);
+        Node updatedNode = nodeService.updateNode(currentJawNode);
+        return nodeMapper.toDto(updatedNode);
+    }
+
+    @Transactional
+    public NodeDto adjustJaw(UUID patientId, UUID caseId, UUID nodeId, InputStream jawUpperStl, InputStream jawLowerStl) {
+        caseService.getCaseById(patientId, caseId);
+        Node currentJawNode = nodeService.getNode(nodeId);
+        Node newNode = nodeService.addStepTo(currentJawNode.getPrevNode());
+        return pendJawTask(patientId, caseId, jawUpperStl, jawLowerStl, newNode);
     }
 
     @Transactional
     public NodeDto startJawSegmentation(UUID patientId, UUID caseId, InputStream jawUpperStl, InputStream jawLowerStl) {
         TreatmentCase tCase = caseService.getCaseById(patientId, caseId);
-
         boolean jawAlreadyExists = nodeService.traverseNodes(tCase.getRoot())
                 .anyMatch(node -> node.getJawSegmentation() != null);
         if (jawAlreadyExists) {
             throw new StepAlreadyExistException("There is already JawSegmentation. Use correction api to change it");
         }
 
-        Node jawNode = nodeService.addStep(tCase);
+        Node jawNode = nodeService.addStepToEnd(tCase);
+        return pendJawTask(patientId, caseId, jawUpperStl, jawLowerStl, jawNode);
+    }
 
-        String jawUpperStlSaved = fileService.saveFile(jawUpperStl, patientId, caseId);
-        String jawLowerStlSaved = fileService.saveFile(jawLowerStl, patientId, caseId);
+    public NodeDto adjustAlignmentInline(UUID patientId, UUID caseId, UUID nodeId, List<JsonNode> amendedInitTeethMatrices) {
+        caseService.getCaseById(patientId, caseId);
+        Node currentAlignmentNode = nodeService.getNode(nodeId);
+        currentAlignmentNode.getAlignmentSegmentation().setInitTeethMatrices(amendedInitTeethMatrices);
+        Node updatedNode = nodeService.updateNode(currentAlignmentNode);
+        return nodeMapper.toDto(updatedNode);
+    }
 
-        SegmentationJawPayload payload = new SegmentationJawPayload(jawUpperStlSaved, jawLowerStlSaved);
-        String payloadJson;
-        try {
-            payloadJson = objectMapper.writeValueAsString(payload);
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException("Failed to serialize payload", e);
-        }
-        taskService.addTask(payloadJson, NodeType.SEGMENTATION_JAW, jawNode);
-
-        return nodeMapper.toDto(jawNode);
+    @Transactional
+    public NodeDto adjustAlignment(UUID patientId, UUID caseId, UUID nodeId) {
+        caseService.getCaseById(patientId, caseId);
+        Node currentAlignmentNode = nodeService.getNode(nodeId);
+        Node newNode = nodeService.addStepTo(currentAlignmentNode.getPrevNode());
+        return pendAlignmentTask(newNode);
     }
 
     @Transactional
@@ -143,8 +170,42 @@ public class SegmentationService {
             throw new StepAlreadyExistException("There is already Alignment. Use correction api to change it");
         }
 
-        Node alignmentNode = nodeService.addStep(tCase);
-        Map<NodeType, Node> prevSegmentationNodes = nodeContentUtils.getPrevNodes(alignmentNode, NODES_REQUIRED_FOR_ALIGNMENT);
+        Node alignmentNode = nodeService.addStepToEnd(tCase);
+        return pendAlignmentTask(alignmentNode);
+    }
+
+    private NodeDto pendCtTask(UUID caseId, MultipartFile ctOriginal, Node newNode) {
+        List<DicomDto> dicomDtos = pacsService.sendInstance(ctOriginal, caseId);
+        String ctCorrected = dicomDtos.get(0).parentSeries();
+
+        SegmentationCtPayload payload = new SegmentationCtPayload(ctCorrected);
+        String payloadJson;
+        try {
+            payloadJson = objectMapper.writeValueAsString(payload);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException("Failed to serialize payload", e);
+        }
+        taskService.addTask(payloadJson, NodeType.SEGMENTATION_CT, newNode);
+        return nodeMapper.toDto(newNode);
+    }
+
+    private NodeDto pendJawTask(UUID patientId, UUID caseId, InputStream jawUpperStl, InputStream jawLowerStl, Node newNode) {
+        String jawUpperStlSaved = fileService.saveFile(jawUpperStl, patientId, caseId);
+        String jawLowerStlSaved = fileService.saveFile(jawLowerStl, patientId, caseId);
+
+        SegmentationJawPayload payload = new SegmentationJawPayload(jawUpperStlSaved, jawLowerStlSaved);
+        String payloadJson;
+        try {
+            payloadJson = objectMapper.writeValueAsString(payload);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException("Failed to serialize payload", e);
+        }
+        taskService.addTask(payloadJson, NodeType.SEGMENTATION_JAW, newNode);
+        return nodeMapper.toDto(newNode);
+    }
+
+    private NodeDto pendAlignmentTask(Node newNode) {
+        Map<NodeType, Node> prevSegmentationNodes = nodeContentUtils.getPrevNodes(newNode, NODES_REQUIRED_FOR_ALIGNMENT);
         if (prevSegmentationNodes.size() != NODES_REQUIRED_FOR_ALIGNMENT.size()) {
             throw new NodesRequiredForAlignmentNotFoundException("Nodes required for alignment were not found!");
         }
@@ -154,12 +215,11 @@ public class SegmentationService {
                 prevSegmentationNodes.get(NodeType.SEGMENTATION_JAW).getId());
 
         try {
-            taskService.addTask(objectMapper.writeValueAsString(payload), NodeType.SEGMENTATION_ALIGNMENT, alignmentNode);
+            taskService.addTask(objectMapper.writeValueAsString(payload), NodeType.SEGMENTATION_ALIGNMENT, newNode);
         } catch (JsonProcessingException e) {
             throw new RuntimeException("Failed to serialize payload", e);
         }
 
-        return nodeMapper.toDto(alignmentNode);
+        return nodeMapper.toDto(newNode);
     }
-
 }

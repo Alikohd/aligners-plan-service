@@ -41,7 +41,7 @@ public class TreatmentPlanningService {
             throw new StepAlreadyExistException("There is already TreatmentPlanning. Use correction api to change it");
         }
 
-        Node treatmentPlanningNode = nodeService.addStep(tCase);
+        Node treatmentPlanningNode = nodeService.addStepToEnd(tCase);
 
         Map<NodeType, Node> requiredNodes = nodeContentUtils.getPrevNodes(treatmentPlanningNode, NODES_REQUIRED_FOR_TREATMENT_PLANNING);
         if (requiredNodes.size() != NODES_REQUIRED_FOR_TREATMENT_PLANNING.size()) {

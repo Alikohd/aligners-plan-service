@@ -39,7 +39,7 @@ public class ResultPlanningService {
             throw new StepAlreadyExistException("There is already ResultPlanning. Use correction api to change it");
         }
 
-        Node resultPlanningNode = nodeService.addStep(tCase);
+        Node resultPlanningNode = nodeService.addStepToEnd(tCase);
 
         Map<NodeType, Node> requiredNodes = nodeContentUtils.getPrevNodes(resultPlanningNode, NODES_REQUIRED_FOR_RESULT_PLANNING);
         if (requiredNodes.size() != NODES_REQUIRED_FOR_RESULT_PLANNING.size()) {

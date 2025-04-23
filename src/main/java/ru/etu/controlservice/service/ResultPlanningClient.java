@@ -1,5 +1,6 @@
 package ru.etu.controlservice.service;
 
+import com.google.protobuf.Struct;
 import net.devh.boot.grpc.client.inject.GrpcClient;
 import org.springframework.stereotype.Service;
 import ru.etu.grpc.resultplanning.ResultPlanningRequest;
@@ -15,7 +16,7 @@ public class ResultPlanningClient {
     @GrpcClient("resultPlanningService")
     private ResultPlanningServiceBlockingStub stub;
 
-    public List<String> planResult(List<AnatomicalStructure> structures) {
+    public List<Struct> planResult(List<AnatomicalStructure> structures) {
         ResultPlanningRequest request = ResultPlanningRequest.newBuilder().addAllStructures(structures).build();
 
         ResultPlanningResponse response = stub.planResult(request);

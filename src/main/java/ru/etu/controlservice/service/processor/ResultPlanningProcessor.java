@@ -1,5 +1,7 @@
 package ru.etu.controlservice.service.processor;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.google.protobuf.Struct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -10,6 +12,7 @@ import ru.etu.controlservice.entity.NodeType;
 import ru.etu.controlservice.repository.NodeRepository;
 import ru.etu.controlservice.service.ResultPlanningClient;
 import ru.etu.controlservice.service.SegmentationNodeUpdater;
+import ru.etu.controlservice.util.ProtobufUtils;
 import ru.etu.grpc.segmentation.AnatomicalStructure;
 
 import java.util.List;
@@ -41,21 +44,23 @@ public class ResultPlanningProcessor implements TaskProcessor {
             }
 
             List<String> stls = alignmentSegmentation.getToothRefs();
-            List<String> initTeethMatrices = alignmentSegmentation.getInitTeethMatrices();
+            List<JsonNode> initTeethMatrices = alignmentSegmentation.getInitTeethMatrices();
+            List<Struct> structsMatrices = ProtobufUtils.jsonNodesToStructs(initTeethMatrices);
 
             List<AnatomicalStructure> anatomicalStructures = IntStream.range(0, stls.size())
                     .mapToObj(i -> AnatomicalStructure.newBuilder()
                             .setStl(stls.get(i))
-                            .setInitMatrix(initTeethMatrices.get(i))
+                            .setInitMatrix(structsMatrices.get(i))
                             .build())
                     .toList();
 
-            List<String> desiredTeethMatrices = resultPlanningClient.planResult(anatomicalStructures);
-            if (desiredTeethMatrices == null) {
+            List<Struct> desiredTeethMatricesStructs = resultPlanningClient.planResult(anatomicalStructures);
+            if (desiredTeethMatricesStructs == null) {
                 log.error("ResultPlanning returned null for node {}", node.getId());
                 throw new RuntimeException("ResultPlanning returned null result");
             }
 
+            List<JsonNode> desiredTeethMatrices = ProtobufUtils.structsToJsonNodes(desiredTeethMatricesStructs);
             segmentationNodeUpdater.setResultPlanning(node, desiredTeethMatrices);
         } catch (Exception e) {
             log.error("Failed to process RESULT_PLANNING task for node {}: {}", node.getId(), e.getMessage(), e);

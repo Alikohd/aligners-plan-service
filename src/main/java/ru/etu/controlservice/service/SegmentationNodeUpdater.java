@@ -1,9 +1,12 @@
 package ru.etu.controlservice.service;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.protobuf.Struct;
+import com.google.protobuf.util.JsonFormat;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 import ru.etu.controlservice.entity.AlignmentSegmentation;
@@ -19,12 +22,10 @@ import ru.etu.controlservice.repository.JawSegRepository;
 import ru.etu.controlservice.repository.NodeRepository;
 import ru.etu.controlservice.repository.ResultPlanningRepository;
 import ru.etu.controlservice.repository.TreatmentPlanningRepository;
+import ru.etu.controlservice.util.ProtobufUtils;
 
 import java.util.List;
 
-/**
- * Service used for updating segmentation nodes within a transactional context to avoid self injection in SegmentationService
- */
 @Service
 @Slf4j
 @RequiredArgsConstructor
@@ -35,8 +36,9 @@ public class SegmentationNodeUpdater {
     private final AlignmentSegRepository alignmentSegRepository;
     private final ResultPlanningRepository resultPlanningRepository;
     private final TreatmentPlanningRepository treatmentPlanningRepository;
+    private final ObjectMapper mapper;
 
-    @Transactional(propagation = Propagation.MANDATORY)
+    @Transactional
     public void updateCtSegmentation(Node node, String ctOriginal, String ctMask) {
         log.debug("Транзакция активна: {}", TransactionSynchronizationManager.isActualTransactionActive());
         File ctOriginalFile = File.fromPacs(ctOriginal);
@@ -51,7 +53,7 @@ public class SegmentationNodeUpdater {
     }
 
     @Transactional
-    public void updateJawSegmentation(Node node, String jawUpperStl, String jawLowerStl, List<String> jawsJson) {
+    public void updateJawSegmentation(Node node, String jawUpperStl, String jawLowerStl, List<JsonNode> jawsJson) {
         log.debug("Setting JawSegmentation: jawUpperStl = {}, jawLowerStl = {}, jawsJson = {}", jawUpperStl, jawLowerStl, jawsJson);
         File jawUpperFile = File.fromS3(jawUpperStl);
         File jawLowerFile = File.fromS3(jawLowerStl);
@@ -67,10 +69,11 @@ public class SegmentationNodeUpdater {
 
     @Transactional
     public void setAlignmentSegmentation(Node node,
-                                         List<String> stlToothRefs, List<String> initTeethMatrices) {
+                                         List<String> stlToothRefs, List<Struct> initTeethMatrices) {
         log.debug("Setting Alignment...");
+        List<JsonNode> jawsSegmented = ProtobufUtils.structsToJsonNodes(initTeethMatrices);
         AlignmentSegmentation alignmentSegmentation = AlignmentSegmentation.builder()
-                .initTeethMatrices(initTeethMatrices)
+                .initTeethMatrices(jawsSegmented)
                 .toothRefs(stlToothRefs)
                 .build();
         alignmentSegRepository.save(alignmentSegmentation);
@@ -79,7 +82,7 @@ public class SegmentationNodeUpdater {
     }
 
     @Transactional
-    public void setResultPlanning(Node node, List<String> desiredTeethMatrices) {
+    public void setResultPlanning(Node node, List<JsonNode> desiredTeethMatrices) {
         log.debug("Setting ResultPlanning...");
         ResultPlanning resultPlanning = ResultPlanning.builder()
                 .desiredTeethMatrices(desiredTeethMatrices)

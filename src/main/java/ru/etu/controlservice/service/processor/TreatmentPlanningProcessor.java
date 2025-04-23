@@ -1,5 +1,7 @@
 package ru.etu.controlservice.service.processor;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.google.protobuf.Struct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -13,6 +15,7 @@ import ru.etu.controlservice.repository.NodeRepository;
 import ru.etu.controlservice.service.SegmentationNodeUpdater;
 import ru.etu.controlservice.service.TreatmentPlanningClient;
 import ru.etu.controlservice.util.NodeContentUtils;
+import ru.etu.controlservice.util.ProtobufUtils;
 import ru.etu.grpc.treatmentplanning.FinalAnatomicalStructure;
 
 import java.util.List;
@@ -51,17 +54,19 @@ public class TreatmentPlanningProcessor implements TaskProcessor {
             }
 
             List<String> stls = alignmentSegmentation.getToothRefs();
-            List<String> initTeethMatrices = alignmentSegmentation.getInitTeethMatrices();
-            List<String> desiredTeethMatrices = resultPlanning.getDesiredTeethMatrices();
+            List<JsonNode> initTeethMatrices = alignmentSegmentation.getInitTeethMatrices();
+            List<JsonNode> desiredTeethMatrices = resultPlanning.getDesiredTeethMatrices();
             if (!(stls.size() == initTeethMatrices.size() && initTeethMatrices.size() == desiredTeethMatrices.size())) {
                 throw new IllegalStateException("Length of required stls and init/desired teeth matrices do not match");
             }
+            List<Struct> initMatricesStructs = ProtobufUtils.jsonNodesToStructs(initTeethMatrices);
+            List<Struct> desiredMatricesStructs = ProtobufUtils.jsonNodesToStructs(desiredTeethMatrices);
 
             List<FinalAnatomicalStructure> finalAnatomicalStructures = IntStream.range(0, stls.size())
                     .mapToObj(i -> FinalAnatomicalStructure.newBuilder()
                             .setStl(stls.get(i))
-                            .setInitMatrix(initTeethMatrices.get(i))
-                            .setDesiredMatrix(desiredTeethMatrices.get(i))
+                            .setInitMatrix(initMatricesStructs.get(i))
+                            .setDesiredMatrix(desiredMatricesStructs.get(i))
                             .build())
                     .toList();
 

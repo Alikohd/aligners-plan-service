@@ -1,8 +1,11 @@
 package ru.etu.controlservice.service;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.google.protobuf.Struct;
 import lombok.RequiredArgsConstructor;
 import net.devh.boot.grpc.client.inject.GrpcClient;
 import org.springframework.stereotype.Service;
+import ru.etu.controlservice.util.ProtobufUtils;
 import ru.etu.grpc.segmentation.AlignmentRequest;
 import ru.etu.grpc.segmentation.AlignmentResponse;
 import ru.etu.grpc.segmentation.AnatomicalStructure;
@@ -31,28 +34,28 @@ public class SegmentationClient {
         return response.getCtMask();
     }
 
-    public List<String> segmentJaw(String filePathUpperStl, String filePathLowerStl) {
+    public List<Struct> segmentJaw(String filePathUpperStl, String filePathLowerStl) {
         JawRequest request = JawRequest.newBuilder()
-                .setJawLowerStl(filePathLowerStl)
-                .setJawUpperStl(filePathUpperStl)
+                .setJawLower(filePathLowerStl)
+                .setJawUpper(filePathUpperStl)
                 .build();
 
         JawResponse response = stub.segmentJaw(request);
-        return response.getJawsJsonList();
+        return response.getJawsSegmentedList();
     }
 
     public List<AnatomicalStructure> align(String ctMask, String filePathUpperStl,
-                                           String filePathLowerStl, List<String> jawsJson) {
+                                           String filePathLowerStl, List<JsonNode> jawsSegmented) {
+        List<Struct> structs = ProtobufUtils.jsonNodesToStructs(jawsSegmented);
         AlignmentRequest request = AlignmentRequest.newBuilder()
                 .setCtMask(ctMask)
                 .setJawUpperStl(filePathUpperStl)
                 .setJawLowerStl(filePathLowerStl)
-                .addAllJawsJson(jawsJson)
+                .addAllJawsSegmented(structs)
                 .build();
 
         AlignmentResponse response = stub.align(request);
 
         return response.getInitStructuresList();
     }
-
 }

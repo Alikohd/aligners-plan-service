@@ -6,11 +6,13 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import ru.etu.controlservice.entity.Node;
 import ru.etu.controlservice.entity.TreatmentCase;
+import ru.etu.controlservice.exceptions.NodeNotFoundException;
 import ru.etu.controlservice.repository.NodeRepository;
 import ru.etu.controlservice.repository.TreatmentCaseRepository;
 
 import java.util.Comparator;
 import java.util.Objects;
+import java.util.UUID;
 import java.util.stream.Stream;
 
 @Service
@@ -21,7 +23,7 @@ public class NodeService {
     private final TreatmentCaseRepository treatmentCaseRepository;
 
     @Transactional(propagation = Propagation.MANDATORY)
-    public Node addStep(TreatmentCase treatmentCase) {
+    public Node addStepToEnd(TreatmentCase treatmentCase) {
         Node rootNode = treatmentCase.getRoot();
 
         if (rootNode == null) {
@@ -29,7 +31,7 @@ public class NodeService {
         }
 
         Node lastNode = findLastNode(rootNode);
-        return appendNewNode(lastNode);
+        return addStepTo(lastNode);
     }
 
     private Node createInitialNode(TreatmentCase treatmentCase) {
@@ -57,7 +59,7 @@ public class NodeService {
     }
 
     @Transactional
-    protected Node appendNewNode(Node previousNode) {
+    protected Node addStepTo(Node previousNode) {
         Node newNode = new Node();
 
         createBidirectionalRelation(previousNode, newNode);
@@ -70,5 +72,14 @@ public class NodeService {
     private void createBidirectionalRelation(Node previousNode, Node newNode) {
         previousNode.getNextNodes().add(newNode);
         newNode.setPrevNode(previousNode);
+    }
+
+    public Node updateNode(Node node) {
+        return nodeRepository.save(node);
+    }
+
+    public Node getNode(UUID id) {
+        return nodeRepository.findById(id)
+                .orElseThrow(() -> new NodeNotFoundException(String.format("Node with id %s not found", id)));
     }
 }

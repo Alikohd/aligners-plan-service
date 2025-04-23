@@ -139,6 +139,11 @@
 			<groupId>org.testcontainers</groupId>
 			<artifactId>minio</artifactId>
 		</dependency>
+		<dependency>
+			<groupId>com.google.protobuf</groupId>
+			<artifactId>protobuf-java-util</artifactId>
+			<version>4.31.0</version>
+		</dependency>
 	</dependencies>
 
 	<build>

@@ -1,5 +1,6 @@
 package ru.etu.controlservice.entity;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -45,7 +46,7 @@ public class JawSegmentation {
 
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "jaws_segmented")
-    private List<String> jawsSegmented;
+    private List<JsonNode> jawsSegmented;
 
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)

@@ -4,11 +4,12 @@ package ru.etu.grpc.treatmentplanning;
 
 option java_package = "ru.etu.grpc.treatmentplanning";
 option java_multiple_files = true;
+import "google/protobuf/struct.proto";
 
 message FinalAnatomicalStructure {
   string stl = 1;
-  string init_matrix = 2;
-  string desired_matrix = 3;
+  google.protobuf.Struct init_matrix = 2;
+  google.protobuf.Struct desired_matrix = 3;
 }
 
 message TreatmentPlanningRequest {

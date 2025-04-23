@@ -1,5 +1,6 @@
 package ru.etu.controlservice.service.processor;
 
+import com.google.protobuf.Struct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -63,7 +64,7 @@ public class AlignmentSegmentationProcessor implements TaskProcessor {
             List<String> stls = alignmentSegmentationResponse.stream()
                     .map(AnatomicalStructure::getStl)
                     .toList();
-            List<String> initMatrices = alignmentSegmentationResponse.stream()
+            List<Struct> initMatrices = alignmentSegmentationResponse.stream()
                     .map(AnatomicalStructure::getInitMatrix)
                     .toList();
 

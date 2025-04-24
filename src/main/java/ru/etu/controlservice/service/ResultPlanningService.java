@@ -1,6 +1,7 @@
 package ru.etu.controlservice.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -38,22 +39,38 @@ public class ResultPlanningService {
         if (resultPlanningAlreadyExists) {
             throw new StepAlreadyExistException("There is already ResultPlanning. Use correction api to change it");
         }
-
         Node resultPlanningNode = nodeService.addStepToEnd(tCase);
+        return pendResultTask(resultPlanningNode);
+    }
 
-        Map<NodeType, Node> requiredNodes = nodeContentUtils.getPrevNodes(resultPlanningNode, NODES_REQUIRED_FOR_RESULT_PLANNING);
+    public NodeDto adjustResultInline(UUID patientId, UUID caseId, UUID nodeId, List<JsonNode> desiredTeethMatrices) {
+        caseService.getCaseById(patientId, caseId);
+        Node currentResultNode = nodeService.getNode(nodeId);
+        currentResultNode.getResultPlanning().setDesiredTeethMatrices(desiredTeethMatrices);
+        Node updatedNode = nodeService.updateNode(currentResultNode);
+        return nodeMapper.toDto(updatedNode);
+    }
+
+    @Transactional
+    public NodeDto adjustResult(UUID patientId, UUID caseId, UUID nodeId) {
+        caseService.getCaseById(patientId, caseId);
+        Node currentResultNode = nodeService.getNode(nodeId);
+        Node newNode = nodeService.addStepTo(currentResultNode.getPrevNode());
+        return pendResultTask(newNode);
+    }
+
+    private NodeDto pendResultTask(Node newNode) {
+        Map<NodeType, Node> requiredNodes = nodeContentUtils.getPrevNodes(newNode, NODES_REQUIRED_FOR_RESULT_PLANNING);
         if (requiredNodes.size() != NODES_REQUIRED_FOR_RESULT_PLANNING.size()) {
             throw new NodesRequiredForAlignmentNotFoundException("Nodes required for ResultPlanning were not found!");
         }
-
         ResultPlanningPayload payload = new ResultPlanningPayload(requiredNodes.get(NodeType.SEGMENTATION_ALIGNMENT).getId());
-
         try {
-            taskService.addTask(objectMapper.writeValueAsString(payload), NodeType.RESULT_PLANNING, resultPlanningNode);
+            taskService.addTask(objectMapper.writeValueAsString(payload), NodeType.RESULT_PLANNING, newNode);
         } catch (JsonProcessingException e) {
             throw new RuntimeException("Failed to serialize payload", e);
         }
 
-        return nodeMapper.toDto(resultPlanningNode);
+        return nodeMapper.toDto(newNode);
     }
 }

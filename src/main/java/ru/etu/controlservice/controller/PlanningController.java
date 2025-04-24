@@ -3,9 +3,12 @@ package ru.etu.controlservice.controller;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import ru.etu.controlservice.dto.NodeDto;
+import ru.etu.controlservice.dto.ResultPlanningAmendRequestDto;
 import ru.etu.controlservice.service.ResultPlanningService;
 import ru.etu.controlservice.service.TreatmentPlanningService;
 
@@ -21,6 +24,19 @@ public class PlanningController {
     @PostMapping("result")
     public NodeDto startResultPlanning(@PathVariable UUID patientId, @PathVariable UUID caseId) {
         return resultPlanningService.startResultPlanning(patientId, caseId);
+    }
+
+    @PostMapping("result-adjust")
+    public NodeDto adjustResultPlanning(@PathVariable UUID patientId,
+                                        @PathVariable UUID caseId, @RequestParam("node") UUID nodeId) {
+        return resultPlanningService.adjustResult(patientId, caseId, nodeId);
+    }
+
+    @PostMapping("result-adjust-inline")
+    public NodeDto adjustResultPlanningInline(@PathVariable UUID patientId,
+                                              @PathVariable UUID caseId,
+                                              @RequestBody ResultPlanningAmendRequestDto request) {
+        return resultPlanningService.adjustResultInline(patientId, caseId, request.node(), request.amendedDesiredTeethMatrices());
     }
 
     @PostMapping("treatment")

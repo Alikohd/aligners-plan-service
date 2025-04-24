@@ -1,6 +1,5 @@
 package ru.etu.controlservice.controller;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -9,13 +8,13 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
-import ru.etu.controlservice.dto.JawAmendRequest;
+import ru.etu.controlservice.dto.AlignmentAmendRequestDto;
+import ru.etu.controlservice.dto.JawAmendRequestDto;
 import ru.etu.controlservice.dto.NodeDto;
 import ru.etu.controlservice.dto.NodePairDto;
 import ru.etu.controlservice.service.SegmentationService;
 
 import java.io.IOException;
-import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -66,7 +65,7 @@ public class SegmentationController {
     @PostMapping("jaw-adjust-inline")
     public NodeDto adjustJawInline(@PathVariable UUID patientId,
                                    @PathVariable UUID caseId,
-                                   @RequestBody JawAmendRequest request) {
+                                   @RequestBody JawAmendRequestDto request) {
         return segmentationService.adjustJawInline(patientId, caseId, request.node(), request.amendedJawsSegmented());
     }
 
@@ -94,8 +93,7 @@ public class SegmentationController {
     @PostMapping("alignment-adjust-inline")
     public NodeDto adjustAlignmentInline(@PathVariable UUID patientId,
                                          @PathVariable UUID caseId,
-                                         @RequestParam("node") UUID nodeId,
-                                         @RequestParam List<JsonNode> amendedInitTeethMatrices) {
-        return segmentationService.adjustAlignmentInline(patientId, caseId, nodeId, amendedInitTeethMatrices);
+                                         @RequestBody AlignmentAmendRequestDto request) {
+        return segmentationService.adjustAlignmentInline(patientId, caseId, request.node(), request.amendedInitTeethMatrices());
     }
 }

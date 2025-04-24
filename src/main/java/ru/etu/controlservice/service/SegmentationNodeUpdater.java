@@ -3,7 +3,6 @@ package ru.etu.controlservice.service;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.protobuf.Struct;
-import com.google.protobuf.util.JsonFormat;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -37,6 +36,7 @@ public class SegmentationNodeUpdater {
     private final ResultPlanningRepository resultPlanningRepository;
     private final TreatmentPlanningRepository treatmentPlanningRepository;
     private final ObjectMapper mapper;
+    private final NodeService nodeService;
 
     @Transactional
     public void updateCtSegmentation(Node node, String ctOriginal, String ctMask) {
@@ -92,16 +92,37 @@ public class SegmentationNodeUpdater {
         nodeRepository.save(node);
     }
 
+//    @Transactional
+//    public void setTreatmentPlanning(Node node,
+//                                     List<String> collectionOfMatricesGroups, List<String> attachments) {
+//        log.debug("Setting TreatmentPlanning...");
+//        TreatmentPlanning treatmentPlanning = TreatmentPlanning.builder()
+//                .treatmentStepMatrixGroups(collectionOfMatricesGroups)
+//                .attachments(attachments)
+//                .build();
+//        treatmentPlanningRepository.save(treatmentPlanning);
+//        node.setTreatmentPlanning(treatmentPlanning);
+//        nodeRepository.save(node);
+//    }
+
     @Transactional
-    public void setTreatmentPlanning(Node node,
-                                     List<String> collectionOfMatricesGroups, List<String> attachments) {
-        log.debug("Setting TreatmentPlanning...");
-        TreatmentPlanning treatmentPlanning = TreatmentPlanning.builder()
-                .treatmentStepMatrixGroups(collectionOfMatricesGroups)
-                .attachments(attachments)
-                .build();
-        treatmentPlanningRepository.save(treatmentPlanning);
-        node.setTreatmentPlanning(treatmentPlanning);
-        nodeRepository.save(node);
+    public void setTreatmentPlanning(Node lastNode, List<JsonNode> matrixGroups,
+                                     List<JsonNode> attachments) {
+        log.debug("Setting TreatmentPlanning steps...");
+
+        if (matrixGroups.size() != attachments.size()) {
+            throw new IllegalArgumentException("Mismatch between matrix groups and attachments size");
+        }
+
+        for (int i = 0; i < matrixGroups.size(); i++) {
+            TreatmentPlanning planningStep = TreatmentPlanning.builder()
+                    .treatmentStepMatrixGroup(matrixGroups.get(i))
+                    .attachment(attachments.get(i))
+                    .build();
+            treatmentPlanningRepository.save(planningStep);
+            Node node = nodeService.addStepTo(lastNode);
+            node.setTreatmentPlanning(planningStep);
+            nodeRepository.save(node);
+        }
     }
 }

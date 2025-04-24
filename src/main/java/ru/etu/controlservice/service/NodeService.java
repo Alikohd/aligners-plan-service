@@ -42,7 +42,7 @@ public class NodeService {
         return newNode;
     }
 
-    private Node findLastNode(Node startNode) {
+    public Node findLastNode(Node startNode) {
         return traverseNodes(startNode)
                 .reduce((first, second) -> second) // Берем последний элемент потока
                 .orElse(startNode); // Если поток пустой, возвращаем начальный узел

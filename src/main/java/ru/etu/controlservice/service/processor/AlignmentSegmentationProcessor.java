@@ -3,6 +3,7 @@ package ru.etu.controlservice.service.processor;
 import com.google.protobuf.Struct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.messaging.MessagingException;
 import org.springframework.stereotype.Component;
 import ru.etu.controlservice.dto.task.AlignmentPayload;
 import ru.etu.controlservice.entity.CtSegmentation;
@@ -36,14 +37,14 @@ public class AlignmentSegmentationProcessor implements TaskProcessor {
                     node.getId(), ctNodeId, jawNodeId);
 
             CtSegmentation ctSegmentation = nodeRepository.findByIdWithCtSegmentation(ctNodeId)
-                    .orElseThrow(() -> new IllegalStateException("CtSegmentation not found for node " + ctNodeId))
+                    .orElseThrow(() -> new MessagingException("CtSegmentation not found for node " + ctNodeId))
                     .getCtSegmentation();
             JawSegmentation jawSegmentation = nodeRepository.findByIdWithJawSegmentation(jawNodeId)
-                    .orElseThrow(() -> new IllegalStateException("JawSegmentation not found for node " + jawNodeId))
+                    .orElseThrow(() -> new MessagingException("JawSegmentation not found for node " + jawNodeId))
                     .getJawSegmentation();
 
             if (ctSegmentation == null || jawSegmentation == null) {
-                throw new IllegalStateException("Required segmentations not found: ctSegmentation=" +
+                throw new MessagingException("Required segmentations not found: ctSegmentation=" +
                         (ctSegmentation == null ? "null" : "present") +
                         ", jawSegmentation=" +
                         (jawSegmentation == null ? "null" : "present"));
@@ -58,7 +59,7 @@ public class AlignmentSegmentationProcessor implements TaskProcessor {
 
             if (alignmentSegmentationResponse == null) {
                 log.error("Alignment returned null for node {}", node.getId());
-                throw new RuntimeException("Alignment returned null result");
+                throw new MessagingException("Alignment returned null result");
             }
 
             List<String> stls = alignmentSegmentationResponse.stream()
@@ -67,11 +68,10 @@ public class AlignmentSegmentationProcessor implements TaskProcessor {
             List<Struct> initMatrices = alignmentSegmentationResponse.stream()
                     .map(AnatomicalStructure::getInitMatrix)
                     .toList();
-
             segmentationNodeUpdater.setAlignmentSegmentation(node, stls, initMatrices);
         } catch (Exception e) {
             log.error("Failed to process SEGMENTATION_ALIGNMENT task for node {}: {}", node.getId(), e.getMessage(), e);
-            throw new RuntimeException("Failed to process SEGMENTATION_ALIGNMENT task", e);
+            throw new MessagingException("Failed to process SEGMENTATION_ALIGNMENT task", e);
         }
     }
 

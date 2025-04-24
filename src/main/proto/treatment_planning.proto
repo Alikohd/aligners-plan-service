@@ -17,8 +17,8 @@ message TreatmentPlanningRequest {
 }
 
 message TreatmentPlanningResponse {
-  repeated string collectionsOfMatricesGroups = 1;
-  repeated string attachments = 2;
+  repeated google.protobuf.Struct collectionsOfMatricesGroups = 1;
+  repeated google.protobuf.Struct attachments = 2;
 }
 
 service TreatmentPlanningService {

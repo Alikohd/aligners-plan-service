@@ -1,5 +1,6 @@
 package ru.etu.controlservice.entity;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -33,12 +34,12 @@ public class TreatmentPlanning {
     private UUID id;
 
     @JdbcTypeCode(SqlTypes.JSON)
-    @Column(name = "collections_of_matrices_groups")
-    private List<String> treatmentStepMatrixGroups;
+    @Column(name = "treatment_step_matrix_group")
+    private JsonNode treatmentStepMatrixGroup;
 
     @JdbcTypeCode(SqlTypes.JSON)
-    @Column(name = "attachments")
-    private List<String> attachments;
+    @Column(name = "attachment")
+    private JsonNode attachment;
 
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)

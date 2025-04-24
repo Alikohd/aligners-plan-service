@@ -9,8 +9,6 @@
 //import ru.etu.controlservice.service.ResultPlanningClient;
 //import ru.etu.controlservice.service.SegmentationClient;
 //import ru.etu.controlservice.service.TreatmentPlanningClient;
-//import ru.etu.grpc.segmentation.AnatomicalStructure;
-//import ru.etu.grpc.treatmentplanning.FinalAnatomicalStructure;
 //
 //import java.util.List;
 //

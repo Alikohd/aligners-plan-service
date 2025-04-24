@@ -35,15 +35,8 @@ public class TreatmentPlanningService {
     @Transactional
     public NodeDto startTreatmentPlanning(UUID patientId, UUID caseId) {
         TreatmentCase tCase = caseService.getCaseById(patientId, caseId);
-        boolean treatmentPlanningAlreadyExists = nodeService.traverseNodes(tCase.getRoot())
-                .anyMatch(node -> node.getTreatmentPlanning() != null);
-        if (treatmentPlanningAlreadyExists) {
-            throw new StepAlreadyExistException("There is already TreatmentPlanning. Use correction api to change it");
-        }
-
-        Node treatmentPlanningNode = nodeService.addStepToEnd(tCase);
-
-        Map<NodeType, Node> requiredNodes = nodeContentUtils.getPrevNodes(treatmentPlanningNode, NODES_REQUIRED_FOR_TREATMENT_PLANNING);
+        Node lastNode = nodeService.findLastNode(tCase.getRoot());
+        Map<NodeType, Node> requiredNodes = nodeContentUtils.getPrevNodes(lastNode, NODES_REQUIRED_FOR_TREATMENT_PLANNING);
         if (requiredNodes.size() != NODES_REQUIRED_FOR_TREATMENT_PLANNING.size()) {
             throw new NodesRequiredForAlignmentNotFoundException("Nodes required for TreatmentPlanning were not found!");
         }
@@ -51,11 +44,11 @@ public class TreatmentPlanningService {
         TreatmentPlanningPayload payload = new TreatmentPlanningPayload(requiredNodes.get(NodeType.RESULT_PLANNING).getId());
 
         try {
-            taskService.addTask(objectMapper.writeValueAsString(payload), NodeType.TREATMENT_PLANNING, treatmentPlanningNode);
+            taskService.addTask(objectMapper.writeValueAsString(payload), NodeType.TREATMENT_PLANNING, lastNode);
         } catch (JsonProcessingException e) {
             throw new RuntimeException("Failed to serialize payload", e);
         }
 
-        return nodeMapper.toDto(treatmentPlanningNode);
+        return nodeMapper.toDto(lastNode);
     }
 }

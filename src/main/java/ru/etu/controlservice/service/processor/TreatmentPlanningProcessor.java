@@ -37,7 +37,7 @@ public class TreatmentPlanningProcessor implements TaskProcessor {
             TreatmentPlanningPayload treatmentPlanningPayload = (TreatmentPlanningPayload) payload;
             UUID resultPlanningId = treatmentPlanningPayload.resultPlanningId();
 
-            log.info("Processing TREATMENT_PLANNING for node {}: resultPlanningId={}", node.getId(), resultPlanningId);
+            log.info("Processing TREATMENT_PLANNING with last node {}: resultPlanningId={}", node.getId(), resultPlanningId);
 
             Node resultPlanningNode = nodeRepository.findByIdWithResultPlanning(resultPlanningId)
                     .orElseThrow(() -> new IllegalStateException("ResultPlanning node not found: " + resultPlanningId));
@@ -47,8 +47,9 @@ public class TreatmentPlanningProcessor implements TaskProcessor {
                 throw new IllegalStateException("ResultPlanning not found for node " + resultPlanningId);
             }
 
-            AlignmentSegmentation alignmentSegmentation = nodeContentUtils.getNodeWithType(
-                    NodeType.SEGMENTATION_ALIGNMENT, resultPlanningNode.getId()).getAlignmentSegmentation();
+            AlignmentSegmentation alignmentSegmentation = nodeContentUtils
+                    .getNodeWithType(NodeType.SEGMENTATION_ALIGNMENT, resultPlanningNode.getId())
+                    .getAlignmentSegmentation();
             if (alignmentSegmentation == null) {
                 throw new IllegalStateException("AlignmentSegmentation not found for node " + resultPlanningId);
             }
@@ -56,9 +57,11 @@ public class TreatmentPlanningProcessor implements TaskProcessor {
             List<String> stls = alignmentSegmentation.getToothRefs();
             List<JsonNode> initTeethMatrices = alignmentSegmentation.getInitTeethMatrices();
             List<JsonNode> desiredTeethMatrices = resultPlanning.getDesiredTeethMatrices();
+
             if (!(stls.size() == initTeethMatrices.size() && initTeethMatrices.size() == desiredTeethMatrices.size())) {
                 throw new IllegalStateException("Length of required stls and init/desired teeth matrices do not match");
             }
+
             List<Struct> initMatricesStructs = ProtobufUtils.jsonNodesToStructs(initTeethMatrices);
             List<Struct> desiredMatricesStructs = ProtobufUtils.jsonNodesToStructs(desiredTeethMatrices);
 
@@ -77,12 +80,18 @@ public class TreatmentPlanningProcessor implements TaskProcessor {
             }
 
             segmentationNodeUpdater.setTreatmentPlanning(node,
-                    treatmentPlanningDto.collectionsOfMatricesGroups(), treatmentPlanningDto.attachments());
+                    ProtobufUtils.structsToJsonNodes(treatmentPlanningDto.collectionsOfMatricesGroups()),
+                    ProtobufUtils.structsToJsonNodes(treatmentPlanningDto.attachments()));
+
+            log.info("Successfully processed TREATMENT_PLANNING for node {} with {} steps",
+                    node.getId(), treatmentPlanningDto.collectionsOfMatricesGroups().size());
+
         } catch (Exception e) {
             log.error("Failed to process TREATMENT_PLANNING task for node {}: {}", node.getId(), e.getMessage(), e);
             throw new RuntimeException("Failed to process TREATMENT_PLANNING task", e);
         }
     }
+
 
     @Override
     public NodeType getSupportedType() {

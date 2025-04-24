@@ -65,7 +65,7 @@ public class IntegrationConfig {
         RequestHandlerRetryAdvice advice = new RequestHandlerRetryAdvice();
         RetryTemplate retryTemplate = new RetryTemplate();
         SimpleRetryPolicy retryPolicy = new SimpleRetryPolicy();
-        retryPolicy.setMaxAttempts(3);
+        retryPolicy.setMaxAttempts(1);
         retryTemplate.setRetryPolicy(retryPolicy);
         FixedBackOffPolicy backOffPolicy = new FixedBackOffPolicy();
         backOffPolicy.setBackOffPeriod(5000); // 5 секунд между попытками

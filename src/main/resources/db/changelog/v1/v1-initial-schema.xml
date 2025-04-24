@@ -130,9 +130,9 @@
             <column name="id" type="uuid">
                 <constraints primaryKey="true" nullable="false"/>
             </column>
-            <column name="attachments" type="jsonb"/>
+            <column name="attachment" type="jsonb"/>
             <column name="created_at" type="timestamp(6)"/>
-            <column name="collections_of_matrices_groups" type="jsonb"/>
+            <column name="treatment_step_matrix_group" type="jsonb"/>
             <column name="updated_at" type="timestamp(6)"/>
         </createTable>
     </changeSet>

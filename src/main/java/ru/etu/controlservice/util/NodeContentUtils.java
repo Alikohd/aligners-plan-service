@@ -9,6 +9,7 @@ import ru.etu.controlservice.entity.NodeType;
 import ru.etu.controlservice.exceptions.NodeNotFoundException;
 import ru.etu.controlservice.repository.NodeRepository;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -20,6 +21,13 @@ import java.util.stream.Stream;
 @RequiredArgsConstructor
 public class NodeContentUtils {
     private final NodeRepository nodeRepository;
+
+    public static NodeType getNodeType(Node node) {
+        return Arrays.stream(NodeType.values())
+                .filter(type -> type.test(node))
+                .findFirst()
+                .orElse(NodeType.EMPTY_NODE);
+    }
 
     public Map<NodeType, Node> getPrevNodes(Node backTraceNode, List<NodeType> requiredNodes) {
         return Stream.iterate(backTraceNode,

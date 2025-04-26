@@ -33,7 +33,7 @@ public class AlignmentSegmentation {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-//    todo изменить на File
+    //    todo изменить на File
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "tooth_refs")
     private List<String> toothRefs;

@@ -7,7 +7,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import ru.etu.controlservice.dto.NodeDto;
+import ru.etu.controlservice.dto.MetaNodeDto;
 import ru.etu.controlservice.dto.task.TreatmentPlanningPayload;
 import ru.etu.controlservice.entity.Node;
 import ru.etu.controlservice.entity.NodeType;
@@ -34,13 +34,13 @@ public class TreatmentPlanningService {
     private final List<NodeType> NODES_REQUIRED_FOR_TREATMENT_PLANNING = List.of(NodeType.RESULT_PLANNING);
 
     @Transactional
-    public NodeDto startTreatmentPlanning(UUID patientId, UUID caseId) {
+    public MetaNodeDto startTreatmentPlanning(UUID patientId, UUID caseId) {
         TreatmentCase tCase = caseService.getCaseById(patientId, caseId);
         Node lastNode = nodeService.findLastNode(tCase.getRoot());
         return pendTreatmentTask(lastNode);
     }
 
-    public NodeDto adjustTreatmentInline(UUID patientId, UUID caseId, UUID nodeId, JsonNode matrixGroup, JsonNode attachment) {
+    public MetaNodeDto adjustTreatmentInline(UUID patientId, UUID caseId, UUID nodeId, JsonNode matrixGroup, JsonNode attachment) {
         caseService.getCaseById(patientId, caseId);
         Node currentTreatmentNode = nodeService.getNode(nodeId);
         TreatmentPlanning currentTreatment = currentTreatmentNode.getTreatmentPlanning();
@@ -52,14 +52,14 @@ public class TreatmentPlanningService {
 
 
     @Transactional
-    public NodeDto adjustTreatment(UUID patientId, UUID caseId, UUID nodeId) {
+    public MetaNodeDto adjustTreatment(UUID patientId, UUID caseId, UUID nodeId) {
         caseService.getCaseById(patientId, caseId);
         Node currentTreatmentNode = nodeService.getNode(nodeId);
         Node newNode = nodeService.addStepTo(currentTreatmentNode.getPrevNode());
         return pendTreatmentTask(newNode);
     }
 
-    private NodeDto pendTreatmentTask(Node newNode) {
+    private MetaNodeDto pendTreatmentTask(Node newNode) {
         Map<NodeType, Node> requiredNodes = nodeContentUtils.getPrevNodes(newNode, NODES_REQUIRED_FOR_TREATMENT_PLANNING);
         if (requiredNodes.size() != NODES_REQUIRED_FOR_TREATMENT_PLANNING.size()) {
             throw new NodesRequiredForAlignmentNotFoundException("Nodes required for TreatmentPlanning were not found!");

@@ -6,7 +6,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import ru.etu.controlservice.dto.NodeDto;
+import ru.etu.controlservice.dto.MetaNodeDto;
 import ru.etu.controlservice.dto.task.ResultPlanningPayload;
 import ru.etu.controlservice.entity.Node;
 import ru.etu.controlservice.entity.NodeType;
@@ -32,7 +32,7 @@ public class ResultPlanningService {
     private final List<NodeType> NODES_REQUIRED_FOR_RESULT_PLANNING = List.of(NodeType.SEGMENTATION_ALIGNMENT);
 
     @Transactional
-    public NodeDto startResultPlanning(UUID patientId, UUID caseId) {
+    public MetaNodeDto startResultPlanning(UUID patientId, UUID caseId) {
         TreatmentCase tCase = caseService.getCaseById(patientId, caseId);
         boolean resultPlanningAlreadyExists = nodeService.traverseNodes(tCase.getRoot())
                 .anyMatch(node -> node.getResultPlanning() != null);
@@ -43,7 +43,7 @@ public class ResultPlanningService {
         return pendResultTask(resultPlanningNode);
     }
 
-    public NodeDto adjustResultInline(UUID patientId, UUID caseId, UUID nodeId, List<JsonNode> desiredTeethMatrices) {
+    public MetaNodeDto adjustResultInline(UUID patientId, UUID caseId, UUID nodeId, List<JsonNode> desiredTeethMatrices) {
         caseService.getCaseById(patientId, caseId);
         Node currentResultNode = nodeService.getNode(nodeId);
         currentResultNode.getResultPlanning().setDesiredTeethMatrices(desiredTeethMatrices);
@@ -52,14 +52,14 @@ public class ResultPlanningService {
     }
 
     @Transactional
-    public NodeDto adjustResult(UUID patientId, UUID caseId, UUID nodeId) {
+    public MetaNodeDto adjustResult(UUID patientId, UUID caseId, UUID nodeId) {
         caseService.getCaseById(patientId, caseId);
         Node currentResultNode = nodeService.getNode(nodeId);
         Node newNode = nodeService.addStepTo(currentResultNode.getPrevNode());
         return pendResultTask(newNode);
     }
 
-    private NodeDto pendResultTask(Node newNode) {
+    private MetaNodeDto pendResultTask(Node newNode) {
         Map<NodeType, Node> requiredNodes = nodeContentUtils.getPrevNodes(newNode, NODES_REQUIRED_FOR_RESULT_PLANNING);
         if (requiredNodes.size() != NODES_REQUIRED_FOR_RESULT_PLANNING.size()) {
             throw new NodesRequiredForAlignmentNotFoundException("Nodes required for ResultPlanning were not found!");

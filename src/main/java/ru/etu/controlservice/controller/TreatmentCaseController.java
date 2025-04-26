@@ -6,7 +6,9 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import ru.etu.controlservice.dto.FlatNodeDto;
 import ru.etu.controlservice.dto.TreatmentCaseDto;
+import ru.etu.controlservice.service.NodeGraphService;
 import ru.etu.controlservice.service.PatientService;
 import ru.etu.controlservice.service.TreatmentCaseService;
 
@@ -19,6 +21,8 @@ import java.util.UUID;
 public class TreatmentCaseController {
     private final TreatmentCaseService caseService;
     private final PatientService patientService;
+    private final TreatmentCaseService treatmentCaseService;
+    private final NodeGraphService nodeGraphService;
 
     @PostMapping
     public TreatmentCaseDto addCase(@PathVariable UUID patientId) {
@@ -33,6 +37,11 @@ public class TreatmentCaseController {
     @GetMapping("/{caseId}")
     public TreatmentCaseDto getCase(@PathVariable UUID patientId, @PathVariable UUID caseId) {
         return caseService.getCaseDtoById(patientId, caseId);
+    }
+
+    @GetMapping("/{caseId}/treatment-plan")
+    public List<FlatNodeDto> getTreatmentPlan(@PathVariable UUID patientId, @PathVariable UUID caseId) {
+        return nodeGraphService.getFlatGraph(patientId, caseId);
     }
 
 }

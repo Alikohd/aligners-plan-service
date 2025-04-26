@@ -1,6 +1,7 @@
 package ru.etu.controlservice.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.integration.annotation.Poller;
@@ -75,6 +76,7 @@ public class TaskQueueHandler {
             case SEGMENTATION_ALIGNMENT -> objectMapper.readValue(payload, AlignmentPayload.class);
             case RESULT_PLANNING -> objectMapper.readValue(payload, ResultPlanningPayload.class);
             case TREATMENT_PLANNING -> objectMapper.readValue(payload, TreatmentPlanningPayload.class);
+            case EMPTY_NODE -> throw new EntityNotFoundException("Empty node cannot be processed");
         };
     }
 }

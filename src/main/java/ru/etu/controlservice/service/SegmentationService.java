@@ -9,7 +9,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import ru.etu.controlservice.dto.DicomDto;
-import ru.etu.controlservice.dto.NodeDto;
+import ru.etu.controlservice.dto.MetaNodeDto;
 import ru.etu.controlservice.dto.NodePairDto;
 import ru.etu.controlservice.dto.task.AlignmentPayload;
 import ru.etu.controlservice.dto.task.SegmentationCtPayload;
@@ -81,7 +81,7 @@ public class SegmentationService {
     }
 
     @Transactional
-    public NodeDto startCtSegmentation(UUID patientId, UUID caseId, MultipartFile ctArchive) {
+    public MetaNodeDto startCtSegmentation(UUID patientId, UUID caseId, MultipartFile ctArchive) {
         log.debug("Starting ct segmentation");
         TreatmentCase tCase = caseService.getCaseById(patientId, caseId);
         log.debug("Case was retrieved");
@@ -96,7 +96,7 @@ public class SegmentationService {
         return pendCtTask(caseId, ctArchive, ctNode);
     }
 
-    public NodeDto adjustCtInline(UUID patientId, UUID caseId, UUID nodeId, MultipartFile amendedCtMask) {
+    public MetaNodeDto adjustCtInline(UUID patientId, UUID caseId, UUID nodeId, MultipartFile amendedCtMask) {
         caseService.getCaseById(patientId, caseId); // for validation
         Node currentCtNode = nodeService.getNode(nodeId);
 
@@ -109,14 +109,14 @@ public class SegmentationService {
     }
 
     @Transactional
-    public NodeDto adjustCt(UUID patientId, UUID caseId, UUID nodeId, MultipartFile ctArchive) {
+    public MetaNodeDto adjustCt(UUID patientId, UUID caseId, UUID nodeId, MultipartFile ctArchive) {
         caseService.getCaseById(patientId, caseId);
         Node currentCtNode = nodeService.getNode(nodeId);
         Node newNode = nodeService.addStepTo(currentCtNode.getPrevNode());
         return pendCtTask(caseId, ctArchive, newNode);
     }
 
-    public NodeDto adjustJawInline(UUID patientId, UUID caseId, UUID nodeId, List<JsonNode> amendedJawsSegmented) {
+    public MetaNodeDto adjustJawInline(UUID patientId, UUID caseId, UUID nodeId, List<JsonNode> amendedJawsSegmented) {
         caseService.getCaseById(patientId, caseId);
         Node currentJawNode = nodeService.getNode(nodeId);
         currentJawNode.getJawSegmentation().setJawsSegmented(amendedJawsSegmented);
@@ -125,7 +125,7 @@ public class SegmentationService {
     }
 
     @Transactional
-    public NodeDto adjustJaw(UUID patientId, UUID caseId, UUID nodeId, InputStream jawUpperStl, InputStream jawLowerStl) {
+    public MetaNodeDto adjustJaw(UUID patientId, UUID caseId, UUID nodeId, InputStream jawUpperStl, InputStream jawLowerStl) {
         caseService.getCaseById(patientId, caseId);
         Node currentJawNode = nodeService.getNode(nodeId);
         Node newNode = nodeService.addStepTo(currentJawNode.getPrevNode());
@@ -133,7 +133,7 @@ public class SegmentationService {
     }
 
     @Transactional
-    public NodeDto startJawSegmentation(UUID patientId, UUID caseId, InputStream jawUpperStl, InputStream jawLowerStl) {
+    public MetaNodeDto startJawSegmentation(UUID patientId, UUID caseId, InputStream jawUpperStl, InputStream jawLowerStl) {
         TreatmentCase tCase = caseService.getCaseById(patientId, caseId);
         boolean jawAlreadyExists = nodeService.traverseNodes(tCase.getRoot())
                 .anyMatch(node -> node.getJawSegmentation() != null);
@@ -145,7 +145,7 @@ public class SegmentationService {
         return pendJawTask(patientId, caseId, jawUpperStl, jawLowerStl, jawNode);
     }
 
-    public NodeDto adjustAlignmentInline(UUID patientId, UUID caseId, UUID nodeId, List<JsonNode> amendedInitTeethMatrices) {
+    public MetaNodeDto adjustAlignmentInline(UUID patientId, UUID caseId, UUID nodeId, List<JsonNode> amendedInitTeethMatrices) {
         caseService.getCaseById(patientId, caseId);
         Node currentAlignmentNode = nodeService.getNode(nodeId);
         currentAlignmentNode.getAlignmentSegmentation().setInitTeethMatrices(amendedInitTeethMatrices);
@@ -154,7 +154,7 @@ public class SegmentationService {
     }
 
     @Transactional
-    public NodeDto adjustAlignment(UUID patientId, UUID caseId, UUID nodeId) {
+    public MetaNodeDto adjustAlignment(UUID patientId, UUID caseId, UUID nodeId) {
         caseService.getCaseById(patientId, caseId);
         Node currentAlignmentNode = nodeService.getNode(nodeId);
         Node newNode = nodeService.addStepTo(currentAlignmentNode.getPrevNode());
@@ -162,7 +162,7 @@ public class SegmentationService {
     }
 
     @Transactional
-    public NodeDto startAlignment(UUID patientId, UUID caseId) {
+    public MetaNodeDto startAlignment(UUID patientId, UUID caseId) {
         TreatmentCase tCase = caseService.getCaseById(patientId, caseId);
         boolean alignmentAlreadyExists = nodeService.traverseNodes(tCase.getRoot())
                 .anyMatch(node -> node.getAlignmentSegmentation() != null);
@@ -174,7 +174,7 @@ public class SegmentationService {
         return pendAlignmentTask(alignmentNode);
     }
 
-    private NodeDto pendCtTask(UUID caseId, MultipartFile ctOriginal, Node newNode) {
+    private MetaNodeDto pendCtTask(UUID caseId, MultipartFile ctOriginal, Node newNode) {
         List<DicomDto> dicomDtos = pacsService.sendInstance(ctOriginal, caseId);
         String ctCorrected = dicomDtos.get(0).parentSeries();
 
@@ -189,7 +189,7 @@ public class SegmentationService {
         return nodeMapper.toDto(newNode);
     }
 
-    private NodeDto pendJawTask(UUID patientId, UUID caseId, InputStream jawUpperStl, InputStream jawLowerStl, Node newNode) {
+    private MetaNodeDto pendJawTask(UUID patientId, UUID caseId, InputStream jawUpperStl, InputStream jawLowerStl, Node newNode) {
         String jawUpperStlSaved = fileService.saveFile(jawUpperStl, patientId, caseId);
         String jawLowerStlSaved = fileService.saveFile(jawLowerStl, patientId, caseId);
 
@@ -204,7 +204,7 @@ public class SegmentationService {
         return nodeMapper.toDto(newNode);
     }
 
-    private NodeDto pendAlignmentTask(Node newNode) {
+    private MetaNodeDto pendAlignmentTask(Node newNode) {
         Map<NodeType, Node> prevSegmentationNodes = nodeContentUtils.getPrevNodes(newNode, NODES_REQUIRED_FOR_ALIGNMENT);
         if (prevSegmentationNodes.size() != NODES_REQUIRED_FOR_ALIGNMENT.size()) {
             throw new NodesRequiredForAlignmentNotFoundException("Nodes required for alignment were not found!");

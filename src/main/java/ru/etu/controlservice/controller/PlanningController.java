@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import ru.etu.controlservice.dto.NodeDto;
 import ru.etu.controlservice.dto.ResultPlanningAmendRequestDto;
+import ru.etu.controlservice.dto.TreatmentPlanningAmendRequest;
 import ru.etu.controlservice.service.ResultPlanningService;
 import ru.etu.controlservice.service.TreatmentPlanningService;
 
@@ -42,5 +43,18 @@ public class PlanningController {
     @PostMapping("treatment")
     public NodeDto startTreatmentPlanning(@PathVariable UUID patientId, @PathVariable UUID caseId) {
         return treatmentPlanningService.startTreatmentPlanning(patientId, caseId);
+    }
+
+    @PostMapping("treatment-adjust")
+    public NodeDto startTreatmentPlanning(@PathVariable UUID patientId, @PathVariable UUID caseId,
+                                          @RequestParam("node") UUID nodeId) {
+        return treatmentPlanningService.adjustTreatment(patientId, caseId, nodeId);
+    }
+
+    @PostMapping("treatment-adjust-inline")
+    public NodeDto startTreatmentPlanning(@PathVariable UUID patientId, @PathVariable UUID caseId,
+                                          @RequestBody TreatmentPlanningAmendRequest request) {
+        return treatmentPlanningService.adjustTreatmentInline(patientId, caseId,
+                request.node(), request.treatmentStepMatrixGroup(), request.attachment());
     }
 }

@@ -113,16 +113,17 @@ public class SegmentationNodeUpdater {
         if (matrixGroups.size() != attachments.size()) {
             throw new IllegalArgumentException("Mismatch between matrix groups and attachments size");
         }
-
+        Node currNode = lastNode;
         for (int i = 0; i < matrixGroups.size(); i++) {
             TreatmentPlanning planningStep = TreatmentPlanning.builder()
                     .treatmentStepMatrixGroup(matrixGroups.get(i))
                     .attachment(attachments.get(i))
                     .build();
             treatmentPlanningRepository.save(planningStep);
-            Node node = nodeService.addStepTo(lastNode);
+            Node node = nodeService.addStepTo(currNode);
             node.setTreatmentPlanning(planningStep);
             nodeRepository.save(node);
+            currNode = node;
         }
     }
 }

@@ -33,9 +33,14 @@ public class TreatmentPlanningService {
     private final List<NodeType> NODES_REQUIRED_FOR_TREATMENT_PLANNING = List.of(NodeType.RESULT_PLANNING);
 
     @Transactional
-    public MetaNodeDto startTreatmentPlanning(UUID patientId, UUID caseId) {
+    public MetaNodeDto startTreatmentPlanning(UUID patientId, UUID caseId, UUID nodeId) {
         TreatmentCase tCase = caseService.getCaseById(patientId, caseId);
-        Node lastNode = nodeService.findLastNode(tCase.getRoot());
+        Node lastNode;
+        if (nodeId != null) {
+            lastNode = nodeService.getNode(nodeId);
+        } else {
+            lastNode = nodeService.findLastNode(tCase.getRoot());
+        }
         return pendTreatmentTask(lastNode);
     }
 

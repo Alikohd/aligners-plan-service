@@ -30,9 +30,15 @@ public class ResultPlanningService {
     private final List<NodeType> NODES_REQUIRED_FOR_RESULT_PLANNING = List.of(NodeType.SEGMENTATION_ALIGNMENT);
 
     @Transactional
-    public MetaNodeDto startResultPlanning(UUID patientId, UUID caseId) {
+    public MetaNodeDto startResultPlanning(UUID patientId, UUID caseId, UUID nodeId) {
         TreatmentCase tCase = caseService.getCaseById(patientId, caseId);
-        Node resultPlanningNode = nodeService.addStepToEnd(tCase);
+        Node resultPlanningNode;
+        if (nodeId != null) {
+            Node currentNode = nodeService.getNode(nodeId);
+            resultPlanningNode = nodeService.addStepTo(currentNode);
+        } else {
+            resultPlanningNode = nodeService.addStepToEnd(tCase);
+        }
         return pendResultTask(resultPlanningNode);
     }
 

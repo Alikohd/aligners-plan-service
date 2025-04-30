@@ -73,11 +73,17 @@ public class SegmentationService {
     }
 
     @Transactional
-    public MetaNodeDto startCtSegmentation(UUID patientId, UUID caseId, MultipartFile ctArchive) {
+    public MetaNodeDto startCtSegmentation(UUID patientId, UUID caseId, UUID nodeId, MultipartFile ctArchive) {
         log.debug("Starting ct segmentation");
         TreatmentCase tCase = caseService.getCaseById(patientId, caseId);
         log.debug("Case was retrieved");
-        Node ctNode = nodeService.addStepToEnd(tCase);
+        Node ctNode;
+        if (nodeId != null) {
+            Node currentNode = nodeService.getNode(nodeId);
+            ctNode = nodeService.addStepTo(currentNode);
+        } else {
+            ctNode = nodeService.addStepToEnd(tCase);
+        }
         return pendCtTask(caseId, ctArchive, ctNode);
     }
 
@@ -118,9 +124,15 @@ public class SegmentationService {
     }
 
     @Transactional
-    public MetaNodeDto startJawSegmentation(UUID patientId, UUID caseId, InputStream jawUpperStl, InputStream jawLowerStl) {
+    public MetaNodeDto startJawSegmentation(UUID patientId, UUID caseId, UUID nodeId, InputStream jawUpperStl, InputStream jawLowerStl) {
         TreatmentCase tCase = caseService.getCaseById(patientId, caseId);
-        Node jawNode = nodeService.addStepToEnd(tCase);
+        Node jawNode;
+        if (nodeId != null) {
+            Node currentNode = nodeService.getNode(nodeId);
+            jawNode = nodeService.addStepTo(currentNode);
+        } else {
+            jawNode = nodeService.addStepToEnd(tCase);
+        }
         return pendJawTask(patientId, caseId, jawUpperStl, jawLowerStl, jawNode);
     }
 
@@ -141,9 +153,15 @@ public class SegmentationService {
     }
 
     @Transactional
-    public MetaNodeDto startAlignment(UUID patientId, UUID caseId) {
+    public MetaNodeDto startAlignment(UUID patientId, UUID caseId, UUID nodeId) {
         TreatmentCase tCase = caseService.getCaseById(patientId, caseId);
-        Node alignmentNode = nodeService.addStepToEnd(tCase);
+        Node alignmentNode;
+        if (nodeId != null) {
+            Node currentNode = nodeService.getNode(nodeId);
+            alignmentNode = nodeService.addStepTo(currentNode);
+        } else {
+            alignmentNode = nodeService.addStepToEnd(tCase);
+        }
         return pendAlignmentTask(alignmentNode);
     }
 

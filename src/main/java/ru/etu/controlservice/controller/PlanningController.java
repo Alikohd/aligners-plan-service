@@ -31,15 +31,16 @@ public class PlanningController {
 
     @PostMapping("/result")
     @Tag(name = "Result Planning")
-    @Operation(summary = "Принять задачу планирования результата", description = "Добавляет в очередь обработки задачу по планированию результата лечения для указанного пациента и случая")
+    @Operation(summary = "Принять задачу планирования результата", description = "Добавляет в очередь обработки задачу по планированию результата лечения для указанного пациента, случая и узла. Если узел не задан, по умолчанию добавление происходит по пути последних ответвлений в графе плана лечения")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Задача планирования результата принята", content = @Content(schema = @Schema(implementation = MetaNodeDto.class))),
             @ApiResponse(responseCode = "404", description = "Пациент или случай не найден")
     })
     public MetaNodeDto startResultPlanning(
             @Parameter(description = "Идентификатор пациента", example = "123e4567-e89b-12d3-a456-426614174000") @PathVariable UUID patientId,
-            @Parameter(description = "Идентификатор случая", example = "123e4567-e89b-12d3-a456-426614174001") @PathVariable UUID caseId) {
-        return resultPlanningService.startResultPlanning(patientId, caseId);
+            @Parameter(description = "Идентификатор случая", example = "123e4567-e89b-12d3-a456-426614174001") @PathVariable UUID caseId,
+            @Parameter(description = "Идентификатор узла", example = "123e4567-e89b-12d3-a456-426614174002") @RequestParam(value = "node", required = false) UUID nodeId) {
+        return resultPlanningService.startResultPlanning(patientId, caseId, nodeId);
     }
 
     @PostMapping("/result-adjust")
@@ -75,15 +76,16 @@ public class PlanningController {
 
     @PostMapping("/treatment")
     @Tag(name = "Treatment Planning")
-    @Operation(summary = "Принять задачу планирования лечения", description = "Добавляет в очередь обработки задачу по планированию лечения для указанного пациента и случая. В результате обработки задачи создается последовательность узлов соответствующая шагам лечения")
+    @Operation(summary = "Принять задачу планирования лечения", description = "Добавляет в очередь обработки задачу по планированию лечения для указанного пациента, случая и узла. Если узел не задан, по умолчанию добавление происходит по пути последних ответвлений в графе плана лечения. В результате обработки задачи создается последовательность узлов соответствующая шагам лечения")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Задача планирования лечения принята", content = @Content(schema = @Schema(implementation = MetaNodeDto.class))),
             @ApiResponse(responseCode = "404", description = "Пациент или случай не найден")
     })
     public MetaNodeDto startTreatmentPlanning(
             @Parameter(description = "Идентификатор пациента", example = "123e4567-e89b-12d3-a456-426614174000") @PathVariable UUID patientId,
-            @Parameter(description = "Идентификатор случая", example = "123e4567-e89b-12d3-a456-426614174001") @PathVariable UUID caseId) {
-        return treatmentPlanningService.startTreatmentPlanning(patientId, caseId);
+            @Parameter(description = "Идентификатор случая", example = "123e4567-e89b-12d3-a456-426614174001") @PathVariable UUID caseId,
+            @Parameter(description = "Идентификатор узла", example = "123e4567-e89b-12d3-a456-426614174002") @RequestParam(value = "node", required = false) UUID nodeId) {
+        return treatmentPlanningService.startTreatmentPlanning(patientId, caseId, nodeId);
     }
 
     @PostMapping("/treatment-adjust")

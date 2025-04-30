@@ -33,7 +33,7 @@ public class SegmentationController {
 
     @PostMapping(value = "/ct", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @Tag(name = "CT Segmentation")
-    @Operation(summary = "Принять задачу сегментации КТ", description = "Добавляет в очередь обработки задачу по сегментации КТ для указанного пациента и случая")
+    @Operation(summary = "Принять задачу сегментации КТ", description = "Добавляет в очередь обработки задачу по сегментации КТ для указанного пациента, случая и узла. Если узел не задан, по умолчанию добавление происходит по пути последних ответвлений в графе плана лечения")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Задача сегментации КТ принята", content = @Content(schema = @Schema(implementation = MetaNodeDto.class))),
             @ApiResponse(responseCode = "400", description = "Некорректный формат архива КТ"),
@@ -42,13 +42,14 @@ public class SegmentationController {
     public MetaNodeDto startCtSegmentation(
             @Parameter(description = "Идентификатор пациента", example = "123e4567-e89b-12d3-a456-426614174000") @PathVariable UUID patientId,
             @Parameter(description = "Идентификатор случая", example = "123e4567-e89b-12d3-a456-426614174001") @PathVariable UUID caseId,
+            @Parameter(description = "Идентификатор узла", example = "123e4567-e89b-12d3-a456-426614174002") @RequestParam(value = "node", required = false) UUID nodeId,
             @Parameter(description = "Архив с данными КТ") @RequestParam("ctArchive") MultipartFile ctArchive) {
-        return segmentationService.startCtSegmentation(patientId, caseId, ctArchive);
+        return segmentationService.startCtSegmentation(patientId, caseId, nodeId, ctArchive);
     }
 
     @PostMapping(value = "/ct-adjust", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @Tag(name = "CT Segmentation")
-    @Operation(summary = "Принять задачу корректировки сегментации КТ", description = "Добавляет в очередь обработки задачу по корректировке сегментации КТ с альтернативным подходом. Создает новый узел сегментации как альтернативу указанному, не удаляя его")
+    @Operation(summary = "Принять задачу корректировки сегментации КТ", description = "Добавляет в очередь обработки задачу по корректировке сегментации КТ с альтернативным подходом. Создает новый узел сегментации как альтернативу указанному, не удаляя его и образуя ответвление в графе плана лечения")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Задача корректировки сегментации КТ принята", content = @Content(schema = @Schema(implementation = MetaNodeDto.class))),
             @ApiResponse(responseCode = "400", description = "Некорректный формат архива КТ"),
@@ -80,7 +81,7 @@ public class SegmentationController {
 
     @PostMapping(value = "/jaw", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @Tag(name = "Jaw Segmentation")
-    @Operation(summary = "Принять задачу сегментации челюстей", description = "Добавляет в очередь обработки задачу по сегментации челюстей для указанного пациента и случая")
+    @Operation(summary = "Принять задачу сегментации челюстей", description = "Добавляет в очередь обработки задачу по сегментации челюстей для указанного пациента, случая и узла. Если узел не задан, по умолчанию добавление происходит по пути последних ответвлений в графе плана лечения")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Задача сегментации челюстей принята", content = @Content(schema = @Schema(implementation = MetaNodeDto.class))),
             @ApiResponse(responseCode = "400", description = "Некорректный формат STL-файлов"),
@@ -89,14 +90,15 @@ public class SegmentationController {
     public MetaNodeDto startJawSegmentation(
             @Parameter(description = "Идентификатор пациента", example = "123e4567-e89b-12d3-a456-426614174000") @PathVariable UUID patientId,
             @Parameter(description = "Идентификатор случая", example = "123e4567-e89b-12d3-a456-426614174001") @PathVariable UUID caseId,
+            @Parameter(description = "Идентификатор узла", example = "123e4567-e89b-12d3-a456-426614174002") @RequestParam(value = "node", required = false) UUID nodeId,
             @Parameter(description = "STL-файл нижней челюсти") @RequestParam("jawLowerStl") MultipartFile jawLowerStl,
             @Parameter(description = "STL-файл верхней челюсти") @RequestParam("jawUpperStl") MultipartFile jawUpperStl) throws IOException {
-        return segmentationService.startJawSegmentation(patientId, caseId, jawUpperStl.getInputStream(), jawLowerStl.getInputStream());
+        return segmentationService.startJawSegmentation(patientId, caseId, nodeId, jawUpperStl.getInputStream(), jawLowerStl.getInputStream());
     }
 
     @PostMapping(value = "/jaw-adjust", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @Tag(name = "Jaw Segmentation")
-    @Operation(summary = "Принять задачу корректировки сегментации челюстей", description = "Добавляет в очередь обработки задачу по корректировке сегментации челюстей с альтернативным подходом. Создает новый узел сегментации как альтернативу указанному, не удаляя его")
+    @Operation(summary = "Принять задачу корректировки сегментации челюстей", description = "Добавляет в очередь обработки задачу по корректировке сегментации челюстей с альтернативным подходом. Создает новый узел сегментации как альтернативу указанному, не удаляя его и образуя ответвление в графе плана лечения")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Задача корректировки сегментации челюстей принята", content = @Content(schema = @Schema(implementation = MetaNodeDto.class))),
             @ApiResponse(responseCode = "400", description = "Некорректный формат STL-файлов"),
@@ -129,7 +131,7 @@ public class SegmentationController {
 
     @PostMapping(value = "/prepare", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @Tag(name = "Alignment")
-    @Operation(summary = "Принять задачи по подготовке этапов для совмещения", description = "Добавляет в очередь обработки задачи по сегментации КТ и челюстей для указанного пациента и случая, допуская их параллельную обработку")
+    @Operation(summary = "Принять задачи по подготовке этапов для совмещения", description = "Добавляет в очередь обработки задачи по сегментации КТ и челюстей для указанного пациента и случая, допуская их параллельную обработку и образуя ответвление в графе плана лечения")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Задачи по подготовке к совмещению приняты", content = @Content(schema = @Schema(implementation = NodePairDto.class))),
             @ApiResponse(responseCode = "400", description = "Некорректный формат файлов"),
@@ -146,20 +148,21 @@ public class SegmentationController {
 
     @PostMapping("/alignment")
     @Tag(name = "Alignment")
-    @Operation(summary = "Принять задачу совмещения", description = "Добавляет в очередь обработки задачу по совмещению сегментаций КТ и челюстей для указанного пациента и случая")
+    @Operation(summary = "Принять задачу совмещения", description = "Добавляет в очередь обработки задачу по совмещению сегментаций КТ и челюстей для указанного пациента, случая и узла. Если узел не задан, по умолчанию добавление происходит по пути последних ответвлений в графе плана лечения")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Задача совмещения принята", content = @Content(schema = @Schema(implementation = MetaNodeDto.class))),
             @ApiResponse(responseCode = "404", description = "Пациент или случай не найден")
     })
     public MetaNodeDto startAlignment(
             @Parameter(description = "Идентификатор пациента", example = "123e4567-e89b-12d3-a456-426614174000") @PathVariable UUID patientId,
-            @Parameter(description = "Идентификатор случая", example = "123e4567-e89b-12d3-a456-426614174001") @PathVariable UUID caseId) {
-        return segmentationService.startAlignment(patientId, caseId);
+            @Parameter(description = "Идентификатор случая", example = "123e4567-e89b-12d3-a456-426614174001") @PathVariable UUID caseId,
+            @Parameter(description = "Идентификатор узла", example = "123e4567-e89b-12d3-a456-426614174002") @RequestParam(value = "node", required = false) UUID nodeId) {
+        return segmentationService.startAlignment(patientId, caseId, nodeId);
     }
 
     @PostMapping("/alignment-adjust")
     @Tag(name = "Alignment")
-    @Operation(summary = "Принять задачу корректировки совмещения", description = "Добавляет в очередь обработки задачу по корректировке совмещения с альтернативным подходом. Создает новый узел совмещения как альтернативу указанному, не удаляя его")
+    @Operation(summary = "Принять задачу корректировки совмещения", description = "Добавляет в очередь обработки задачу по корректировке совмещения с альтернативным подходом. Создает новый узел совмещения как альтернативу указанному, не удаляя его и образуя ответвление в графе плана лечения")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Задача корректировки совмещения принята", content = @Content(schema = @Schema(implementation = MetaNodeDto.class))),
             @ApiResponse(responseCode = "400", description = "Неверный nodeId"),

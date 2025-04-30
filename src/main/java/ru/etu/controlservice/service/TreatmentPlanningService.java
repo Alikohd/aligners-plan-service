@@ -13,7 +13,6 @@ import ru.etu.controlservice.entity.Node;
 import ru.etu.controlservice.entity.NodeType;
 import ru.etu.controlservice.entity.TreatmentCase;
 import ru.etu.controlservice.entity.TreatmentPlanning;
-import ru.etu.controlservice.exceptions.NodesRequiredForAlignmentNotFoundException;
 import ru.etu.controlservice.mapper.NodeMapper;
 import ru.etu.controlservice.util.NodeContentUtils;
 
@@ -60,13 +59,8 @@ public class TreatmentPlanningService {
     }
 
     private MetaNodeDto pendTreatmentTask(Node newNode) {
-        Map<NodeType, Node> requiredNodes = nodeContentUtils.getPrevNodes(newNode, NODES_REQUIRED_FOR_TREATMENT_PLANNING);
-        if (requiredNodes.size() != NODES_REQUIRED_FOR_TREATMENT_PLANNING.size()) {
-            throw new NodesRequiredForAlignmentNotFoundException("Nodes required for TreatmentPlanning were not found!");
-        }
-
+        Map<NodeType, Node> requiredNodes = nodeContentUtils.getRequiredPrevNodes(newNode, NODES_REQUIRED_FOR_TREATMENT_PLANNING);
         TreatmentPlanningPayload payload = new TreatmentPlanningPayload(requiredNodes.get(NodeType.RESULT_PLANNING).getId());
-
         try {
             taskService.addTask(objectMapper.writeValueAsString(payload), NodeType.TREATMENT_PLANNING, newNode);
         } catch (JsonProcessingException e) {

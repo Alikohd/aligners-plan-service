@@ -7,6 +7,7 @@ import org.springframework.transaction.annotation.Transactional;
 import ru.etu.controlservice.entity.Node;
 import ru.etu.controlservice.entity.NodeType;
 import ru.etu.controlservice.exceptions.NodeNotFoundException;
+import ru.etu.controlservice.exceptions.RequiredNodesNotFoundException;
 import ru.etu.controlservice.repository.NodeRepository;
 
 import java.util.Arrays;
@@ -29,14 +30,20 @@ public class NodeContentUtils {
                 .orElse(NodeType.EMPTY_NODE);
     }
 
-    public Map<NodeType, Node> getPrevNodes(Node backTraceNode, List<NodeType> requiredNodes) {
-        return Stream.iterate(backTraceNode,
+    public Map<NodeType, Node> getRequiredPrevNodes(Node backTraceNode, List<NodeType> requiredNodes) {
+        Map<NodeType, Node> prevNodesMap = Stream.iterate(backTraceNode,
                         node -> Objects.nonNull(node.getPrevNode()),
                         Node::getPrevNode)
+                .limit(requiredNodes.size() + 1)
                 .flatMap(node -> requiredNodes.stream()
                         .filter(type -> type.getNodeStep(node) != null)
                         .map(type -> Map.entry(type, node)))
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+
+        if (prevNodesMap.size() != requiredNodes.size()) {
+            throw new RequiredNodesNotFoundException(String.format("Operation requires nodes %s relative to target node that haven't been found", requiredNodes));
+        }
+        return prevNodesMap;
     }
 
     @Transactional(readOnly = true)

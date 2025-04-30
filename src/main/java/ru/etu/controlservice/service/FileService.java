@@ -6,7 +6,6 @@ import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
 import ru.etu.controlservice.dto.FileDto;
-import ru.etu.controlservice.exceptions.DownloadFileException;
 import ru.etu.controlservice.repository.S3Repository;
 import ru.etu.controlservice.util.UserFolderUtils;
 
@@ -36,7 +35,7 @@ public class FileService {
         try {
             resource = new ByteArrayResource(file.readAllBytes());
         } catch (IOException e) {
-            throw new DownloadFileException("Error while reading" + fileName + "file", e);
+            throw new RuntimeException("Error while reading" + fileName + "file", e);
         }
         return new FileDto(fileName, resource);
     }

@@ -11,8 +11,6 @@ import ru.etu.controlservice.dto.task.ResultPlanningPayload;
 import ru.etu.controlservice.entity.Node;
 import ru.etu.controlservice.entity.NodeType;
 import ru.etu.controlservice.entity.TreatmentCase;
-import ru.etu.controlservice.exceptions.NodesRequiredForAlignmentNotFoundException;
-import ru.etu.controlservice.exceptions.StepAlreadyExistException;
 import ru.etu.controlservice.mapper.NodeMapper;
 import ru.etu.controlservice.util.NodeContentUtils;
 
@@ -34,11 +32,6 @@ public class ResultPlanningService {
     @Transactional
     public MetaNodeDto startResultPlanning(UUID patientId, UUID caseId) {
         TreatmentCase tCase = caseService.getCaseById(patientId, caseId);
-        boolean resultPlanningAlreadyExists = nodeService.traverseNodes(tCase.getRoot())
-                .anyMatch(node -> node.getResultPlanning() != null);
-        if (resultPlanningAlreadyExists) {
-            throw new StepAlreadyExistException("There is already ResultPlanning. Use correction api to change it");
-        }
         Node resultPlanningNode = nodeService.addStepToEnd(tCase);
         return pendResultTask(resultPlanningNode);
     }
@@ -60,10 +53,7 @@ public class ResultPlanningService {
     }
 
     private MetaNodeDto pendResultTask(Node newNode) {
-        Map<NodeType, Node> requiredNodes = nodeContentUtils.getPrevNodes(newNode, NODES_REQUIRED_FOR_RESULT_PLANNING);
-        if (requiredNodes.size() != NODES_REQUIRED_FOR_RESULT_PLANNING.size()) {
-            throw new NodesRequiredForAlignmentNotFoundException("Nodes required for ResultPlanning were not found!");
-        }
+        Map<NodeType, Node> requiredNodes = nodeContentUtils.getRequiredPrevNodes(newNode, NODES_REQUIRED_FOR_RESULT_PLANNING);
         ResultPlanningPayload payload = new ResultPlanningPayload(requiredNodes.get(NodeType.SEGMENTATION_ALIGNMENT).getId());
         try {
             taskService.addTask(objectMapper.writeValueAsString(payload), NodeType.RESULT_PLANNING, newNode);

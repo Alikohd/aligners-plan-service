@@ -17,8 +17,6 @@ import ru.etu.controlservice.dto.task.SegmentationJawPayload;
 import ru.etu.controlservice.entity.Node;
 import ru.etu.controlservice.entity.NodeType;
 import ru.etu.controlservice.entity.TreatmentCase;
-import ru.etu.controlservice.exceptions.NodesRequiredForAlignmentNotFoundException;
-import ru.etu.controlservice.exceptions.StepAlreadyExistException;
 import ru.etu.controlservice.mapper.NodeMapper;
 import ru.etu.controlservice.util.NodeContentUtils;
 
@@ -45,12 +43,6 @@ public class SegmentationService {
     public NodePairDto prepareForAlignment(UUID patientId, UUID caseId, MultipartFile ctArchive,
                                            InputStream jawUpperStl, InputStream jawLowerStl) {
         TreatmentCase tCase = caseService.getCaseById(patientId, caseId);
-
-        boolean segmentationStepAlreadyExists = nodeService.traverseNodes(tCase.getRoot())
-                .anyMatch(node -> node.getCtSegmentation() != null || node.getJawSegmentation() != null);
-        if (segmentationStepAlreadyExists) {
-            throw new StepAlreadyExistException("There is already some segmentation. Please use another API");
-        }
 
         Node ctNode = nodeService.addStepToEnd(tCase);
         Node jawNode = nodeService.addStepToEnd(tCase);
@@ -85,13 +77,6 @@ public class SegmentationService {
         log.debug("Starting ct segmentation");
         TreatmentCase tCase = caseService.getCaseById(patientId, caseId);
         log.debug("Case was retrieved");
-        boolean ctAlreadyExists = nodeService.traverseNodes(tCase.getRoot())
-                .anyMatch(node -> node.getCtSegmentation() != null);
-        log.debug("Traversing done");
-        if (ctAlreadyExists) {
-            throw new StepAlreadyExistException("There is already CtSegmentation. Use correction api to change it");
-        }
-
         Node ctNode = nodeService.addStepToEnd(tCase);
         return pendCtTask(caseId, ctArchive, ctNode);
     }
@@ -135,12 +120,6 @@ public class SegmentationService {
     @Transactional
     public MetaNodeDto startJawSegmentation(UUID patientId, UUID caseId, InputStream jawUpperStl, InputStream jawLowerStl) {
         TreatmentCase tCase = caseService.getCaseById(patientId, caseId);
-        boolean jawAlreadyExists = nodeService.traverseNodes(tCase.getRoot())
-                .anyMatch(node -> node.getJawSegmentation() != null);
-        if (jawAlreadyExists) {
-            throw new StepAlreadyExistException("There is already JawSegmentation. Use correction api to change it");
-        }
-
         Node jawNode = nodeService.addStepToEnd(tCase);
         return pendJawTask(patientId, caseId, jawUpperStl, jawLowerStl, jawNode);
     }
@@ -164,12 +143,6 @@ public class SegmentationService {
     @Transactional
     public MetaNodeDto startAlignment(UUID patientId, UUID caseId) {
         TreatmentCase tCase = caseService.getCaseById(patientId, caseId);
-        boolean alignmentAlreadyExists = nodeService.traverseNodes(tCase.getRoot())
-                .anyMatch(node -> node.getAlignmentSegmentation() != null);
-        if (alignmentAlreadyExists) {
-            throw new StepAlreadyExistException("There is already Alignment. Use correction api to change it");
-        }
-
         Node alignmentNode = nodeService.addStepToEnd(tCase);
         return pendAlignmentTask(alignmentNode);
     }
@@ -205,11 +178,7 @@ public class SegmentationService {
     }
 
     private MetaNodeDto pendAlignmentTask(Node newNode) {
-        Map<NodeType, Node> prevSegmentationNodes = nodeContentUtils.getPrevNodes(newNode, NODES_REQUIRED_FOR_ALIGNMENT);
-        if (prevSegmentationNodes.size() != NODES_REQUIRED_FOR_ALIGNMENT.size()) {
-            throw new NodesRequiredForAlignmentNotFoundException("Nodes required for alignment were not found!");
-        }
-
+        Map<NodeType, Node> prevSegmentationNodes = nodeContentUtils.getRequiredPrevNodes(newNode, NODES_REQUIRED_FOR_ALIGNMENT);
         AlignmentPayload payload = new AlignmentPayload(
                 prevSegmentationNodes.get(NodeType.SEGMENTATION_CT).getId(),
                 prevSegmentationNodes.get(NodeType.SEGMENTATION_JAW).getId());

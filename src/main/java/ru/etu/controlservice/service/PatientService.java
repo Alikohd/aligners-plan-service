@@ -7,6 +7,8 @@ import ru.etu.controlservice.entity.Patient;
 import ru.etu.controlservice.mapper.PatientMapper;
 import ru.etu.controlservice.repository.PatientRepository;
 
+import java.util.List;
+
 @Service
 @RequiredArgsConstructor
 public class PatientService {
@@ -16,5 +18,9 @@ public class PatientService {
     public PatientDto addPatient() {
         Patient savedPatient = patientRepository.save(new Patient());
         return patientMapper.entityToDto(savedPatient);
+    }
+
+    public List<PatientDto> getAllPatients() {
+        return patientMapper.entityToDtoList(patientRepository.findAll());
     }
 }

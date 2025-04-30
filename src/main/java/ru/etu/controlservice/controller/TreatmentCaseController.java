@@ -26,12 +26,12 @@ import java.util.UUID;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/patients/{patientId}/cases")
-@Tag(name = "Treatment Cases", description = "API для управления случаями лечения пациентов")
 public class TreatmentCaseController {
     private final TreatmentCaseService caseService;
     private final NodeGraphService nodeGraphService;
 
     @PostMapping
+    @Tag(name = "Treatment Case")
     @ResponseStatus(HttpStatus.CREATED)
     @Operation(summary = "Создать случай лечения", description = "Создает случай лечения для указанного пациента")
     @ApiResponses(value = {
@@ -45,6 +45,7 @@ public class TreatmentCaseController {
     }
 
     @GetMapping
+    @Tag(name = "Treatment Case")
     @Operation(summary = "Получить все случаи лечения", description = "Возвращает список всех случаев лечения для указанного пациента")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Список случаев лечения получен", content = @Content(schema = @Schema(implementation = TreatmentCaseDto.class))),
@@ -56,6 +57,7 @@ public class TreatmentCaseController {
     }
 
     @GetMapping("/{caseId}")
+    @Tag(name = "Treatment Case")
     @Operation(summary = "Получить случай лечения", description = "Возвращает данные конкретного случая лечения для указанного пациента")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Данные случая лечения получены", content = @Content(schema = @Schema(implementation = TreatmentCaseDto.class))),
@@ -68,6 +70,7 @@ public class TreatmentCaseController {
     }
 
     @GetMapping("/{caseId}/treatment-plan")
+    @Tag(name = "Treatment Case")
     @Operation(summary = "Получить план лечения", description = "Возвращает граф, представляющий план лечения в виде плоской структуры со связями узлов для указанного случая и пациента")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "План лечения получен", content = @Content(schema = @Schema(implementation = FlatNodeDto.class))),

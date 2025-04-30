@@ -8,6 +8,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -27,11 +28,11 @@ import java.util.UUID;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/patients/{patientId}/cases/{caseId}/segmentation")
-@Tag(name = "Segmentation", description = "API для обработки этапов сегментации при моделировании лечения пациента")
 public class SegmentationController {
     private final SegmentationService segmentationService;
 
-    @PostMapping("/ct")
+    @PostMapping(value = "/ct", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @Tag(name = "CT Segmentation")
     @Operation(summary = "Принять задачу сегментации КТ", description = "Добавляет в очередь обработки задачу по сегментации КТ для указанного пациента и случая")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Задача сегментации КТ принята", content = @Content(schema = @Schema(implementation = MetaNodeDto.class))),
@@ -45,7 +46,8 @@ public class SegmentationController {
         return segmentationService.startCtSegmentation(patientId, caseId, ctArchive);
     }
 
-    @PostMapping("/ct-adjust")
+    @PostMapping(value = "/ct-adjust", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @Tag(name = "CT Segmentation")
     @Operation(summary = "Принять задачу корректировки сегментации КТ", description = "Добавляет в очередь обработки задачу по корректировке сегментации КТ с альтернативным подходом. Создает новый узел сегментации как альтернативу указанному, не удаляя его")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Задача корректировки сегментации КТ принята", content = @Content(schema = @Schema(implementation = MetaNodeDto.class))),
@@ -60,7 +62,8 @@ public class SegmentationController {
         return segmentationService.adjustCt(patientId, caseId, nodeId, ctArchive);
     }
 
-    @PostMapping("/ct-adjust-inline")
+    @PostMapping(value = "/ct-adjust-inline", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @Tag(name = "CT Segmentation")
     @Operation(summary = "Править результат сегментации КТ", description = "Заменяет маску КТ на заданную для указанного узла, пациента и случая")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Маска КТ заменена", content = @Content(schema = @Schema(implementation = MetaNodeDto.class))),
@@ -75,7 +78,8 @@ public class SegmentationController {
         return segmentationService.adjustCtInline(patientId, caseId, nodeId, amendedCtMask);
     }
 
-    @PostMapping("/jaw")
+    @PostMapping(value = "/jaw", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @Tag(name = "Jaw Segmentation")
     @Operation(summary = "Принять задачу сегментации челюстей", description = "Добавляет в очередь обработки задачу по сегментации челюстей для указанного пациента и случая")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Задача сегментации челюстей принята", content = @Content(schema = @Schema(implementation = MetaNodeDto.class))),
@@ -90,7 +94,8 @@ public class SegmentationController {
         return segmentationService.startJawSegmentation(patientId, caseId, jawUpperStl.getInputStream(), jawLowerStl.getInputStream());
     }
 
-    @PostMapping("/jaw-adjust")
+    @PostMapping(value = "/jaw-adjust", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @Tag(name = "Jaw Segmentation")
     @Operation(summary = "Принять задачу корректировки сегментации челюстей", description = "Добавляет в очередь обработки задачу по корректировке сегментации челюстей с альтернативным подходом. Создает новый узел сегментации как альтернативу указанному, не удаляя его")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Задача корректировки сегментации челюстей принята", content = @Content(schema = @Schema(implementation = MetaNodeDto.class))),
@@ -107,6 +112,7 @@ public class SegmentationController {
     }
 
     @PostMapping("/jaw-adjust-inline")
+    @Tag(name = "Jaw Segmentation")
     @Operation(summary = "Править результат сегментации челюстей", description = "Заменяет результат сегментации челюстей на заданный для указанного узла, пациента и случая")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Результат сегментации челюстей заменен", content = @Content(schema = @Schema(implementation = MetaNodeDto.class))),
@@ -121,7 +127,8 @@ public class SegmentationController {
         return segmentationService.adjustJawInline(patientId, caseId, nodeId, request.amendedJawsSegmented());
     }
 
-    @PostMapping("/prepare")
+    @PostMapping(value = "/prepare", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @Tag(name = "Alignment")
     @Operation(summary = "Принять задачи по подготовке этапов для совмещения", description = "Добавляет в очередь обработки задачи по сегментации КТ и челюстей для указанного пациента и случая, допуская их параллельную обработку")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Задачи по подготовке к совмещению приняты", content = @Content(schema = @Schema(implementation = NodePairDto.class))),
@@ -138,6 +145,7 @@ public class SegmentationController {
     }
 
     @PostMapping("/alignment")
+    @Tag(name = "Alignment")
     @Operation(summary = "Принять задачу совмещения", description = "Добавляет в очередь обработки задачу по совмещению сегментаций КТ и челюстей для указанного пациента и случая")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Задача совмещения принята", content = @Content(schema = @Schema(implementation = MetaNodeDto.class))),
@@ -150,6 +158,7 @@ public class SegmentationController {
     }
 
     @PostMapping("/alignment-adjust")
+    @Tag(name = "Alignment")
     @Operation(summary = "Принять задачу корректировки совмещения", description = "Добавляет в очередь обработки задачу по корректировке совмещения с альтернативным подходом. Создает новый узел совмещения как альтернативу указанному, не удаляя его")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Задача корректировки совмещения принята", content = @Content(schema = @Schema(implementation = MetaNodeDto.class))),
@@ -164,6 +173,7 @@ public class SegmentationController {
     }
 
     @PostMapping("/alignment-adjust-inline")
+    @Tag(name = "Alignment")
     @Operation(summary = "Править результат совмещения", description = "Заменяет результат совмещения на заданный для указанного узла, пациента и случая")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Результат совмещения заменен", content = @Content(schema = @Schema(implementation = MetaNodeDto.class))),

@@ -8,10 +8,8 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import ru.etu.controlservice.dto.ErrorResponse;
 import ru.etu.controlservice.exceptions.CaseNotFoundException;
 import ru.etu.controlservice.exceptions.NodeNotFoundException;
-import ru.etu.controlservice.exceptions.PacsOperationException;
 import ru.etu.controlservice.exceptions.PatientNotFoundException;
 import ru.etu.controlservice.exceptions.RequiredNodesNotFoundException;
-import ru.etu.controlservice.exceptions.S3OperationException;
 
 import java.time.Instant;
 
@@ -19,11 +17,17 @@ import java.time.Instant;
 @Slf4j
 public class GlobalExceptionHandler {
 
-    @ExceptionHandler({S3OperationException.class, PacsOperationException.class, RequiredNodesNotFoundException.class,
+    @ExceptionHandler({RequiredNodesNotFoundException.class,
             CaseNotFoundException.class, NodeNotFoundException.class, PatientNotFoundException.class})
     @ResponseStatus(HttpStatus.NOT_FOUND)
     public ErrorResponse handleEntityNotFoundException(Exception ex) {
         return new ErrorResponse(HttpStatus.NOT_FOUND.value(), ex.getMessage(), Instant.now());
+    }
+
+    @ExceptionHandler(IllegalArgumentException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ErrorResponse handleClientException(Exception ex) {
+        return new ErrorResponse(HttpStatus.BAD_REQUEST.value(), ex.getMessage(), Instant.now());
     }
 
     @ExceptionHandler(RuntimeException.class)

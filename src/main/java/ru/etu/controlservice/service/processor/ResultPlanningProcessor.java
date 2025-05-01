@@ -10,7 +10,7 @@ import ru.etu.controlservice.entity.AlignmentSegmentation;
 import ru.etu.controlservice.entity.Node;
 import ru.etu.controlservice.entity.NodeType;
 import ru.etu.controlservice.repository.NodeRepository;
-import ru.etu.controlservice.service.ResultPlanningClient;
+import ru.etu.controlservice.service.GrpcClient.ResultPlanningClient;
 import ru.etu.controlservice.service.SegmentationNodeUpdater;
 import ru.etu.controlservice.util.ProtobufUtils;
 import ru.etu.grpc.segmentation.AnatomicalStructure;

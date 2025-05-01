@@ -1,8 +1,11 @@
-package ru.etu.controlservice.service;
+package ru.etu.controlservice.service.GrpcClient;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.protobuf.Struct;
+import io.grpc.Status;
+import io.grpc.StatusRuntimeException;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import net.devh.boot.grpc.client.inject.GrpcClient;
 import org.springframework.stereotype.Service;
 import ru.etu.controlservice.util.ProtobufUtils;
@@ -17,6 +20,7 @@ import ru.etu.grpc.segmentation.SegmentationServiceGrpc.SegmentationServiceBlock
 
 import java.util.List;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class SegmentationClient {
@@ -28,10 +32,15 @@ public class SegmentationClient {
         CtRequest request = CtRequest.newBuilder()
                 .setCtOriginal(ctOriginal)
                 .build();
-
-        CtResponse response = stub.segmentCt(request);
-
-        return response.getCtMask();
+        try {
+            CtResponse response = stub.segmentCt(request);
+            return response.getCtMask();
+        } catch (StatusRuntimeException e) {
+            Status.Code code = e.getStatus().getCode();
+            String description = e.getStatus().getDescription();
+            log.error("gRPC call SegmentationService.segmentCt failed with status: {}, description: {}", code, description);
+            throw e;
+        }
     }
 
     public List<Struct> segmentJaw(String filePathUpperStl, String filePathLowerStl) {
@@ -39,9 +48,15 @@ public class SegmentationClient {
                 .setJawLower(filePathLowerStl)
                 .setJawUpper(filePathUpperStl)
                 .build();
-
-        JawResponse response = stub.segmentJaw(request);
-        return response.getJawsSegmentedList();
+        try {
+            JawResponse response = stub.segmentJaw(request);
+            return response.getJawsSegmentedList();
+        } catch (StatusRuntimeException e) {
+            Status.Code code = e.getStatus().getCode();
+            String description = e.getStatus().getDescription();
+            log.error("gRPC call SegmentationService.segmentJaw failed with status: {}, description: {}", code, description);
+            throw e;
+        }
     }
 
     public List<AnatomicalStructure> align(String ctMask, String filePathUpperStl,
@@ -53,9 +68,14 @@ public class SegmentationClient {
                 .setJawLowerStl(filePathLowerStl)
                 .addAllJawsSegmented(structs)
                 .build();
-
-        AlignmentResponse response = stub.align(request);
-
-        return response.getInitStructuresList();
+        try {
+            AlignmentResponse response = stub.align(request);
+            return response.getInitStructuresList();
+        } catch (StatusRuntimeException e) {
+            Status.Code code = e.getStatus().getCode();
+            String description = e.getStatus().getDescription();
+            log.error("gRPC call SegmentationService.align failed with status: {}, description: {}", code, description);
+            throw e;
+        }
     }
 }

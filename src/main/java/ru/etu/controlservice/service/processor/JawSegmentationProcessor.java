@@ -9,7 +9,7 @@ import org.springframework.stereotype.Component;
 import ru.etu.controlservice.dto.task.SegmentationJawPayload;
 import ru.etu.controlservice.entity.Node;
 import ru.etu.controlservice.entity.NodeType;
-import ru.etu.controlservice.service.SegmentationClient;
+import ru.etu.controlservice.service.GrpcClient.SegmentationClient;
 import ru.etu.controlservice.service.SegmentationNodeUpdater;
 import ru.etu.controlservice.util.ProtobufUtils;
 

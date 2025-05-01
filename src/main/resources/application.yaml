@@ -46,6 +46,9 @@ grpc:
       address: static://localhost:9093
       negotiation-type: plaintext
 
+springdoc:
+  override-with-generic-response: false
+
 #springdoc:
 #  swagger-ui:
 #    path: /swagger-ui.html

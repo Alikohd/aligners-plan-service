@@ -1,5 +1,8 @@
-package ru.etu.controlservice.service;
+package ru.etu.controlservice.service.GrpcClient;
 
+import io.grpc.Status;
+import io.grpc.StatusRuntimeException;
+import lombok.extern.slf4j.Slf4j;
 import net.devh.boot.grpc.client.inject.GrpcClient;
 import org.springframework.stereotype.Service;
 import ru.etu.controlservice.dto.grpc.TreatmentPlanningDto;
@@ -11,6 +14,7 @@ import ru.etu.grpc.treatmentplanning.TreatmentPlanningServiceGrpc.TreatmentPlann
 import java.util.List;
 
 @Service
+@Slf4j
 public class TreatmentPlanningClient {
 
     @GrpcClient("treatmentPlanningService")
@@ -18,9 +22,15 @@ public class TreatmentPlanningClient {
 
     public TreatmentPlanningDto planTreatment(List<FinalAnatomicalStructure> structures) {
         TreatmentPlanningRequest request = TreatmentPlanningRequest.newBuilder().addAllStructures(structures).build();
-        TreatmentPlanningResponse response = stub.planTreatment(request);
 
-        return new TreatmentPlanningDto(response.getCollectionsOfMatricesGroupsList(), response.getAttachmentsList());
+        try {
+            TreatmentPlanningResponse response = stub.planTreatment(request);
+            return new TreatmentPlanningDto(response.getCollectionsOfMatricesGroupsList(), response.getAttachmentsList());
+        } catch (StatusRuntimeException e) {
+            Status.Code code = e.getStatus().getCode();
+            String description = e.getStatus().getDescription();
+            log.error("gRPC call TreatmentPlanningService.planTreatment failed with status: {}, description: {}", code, description);
+            throw e;
+        }
     }
-
 }

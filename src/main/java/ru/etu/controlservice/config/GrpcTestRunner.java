@@ -6,9 +6,9 @@
 //import org.springframework.context.annotation.Configuration;
 //import ru.etu.controlservice.dto.grpc.TreatmentPlanningDto;
 //import ru.etu.controlservice.service.PacsService;
-//import ru.etu.controlservice.service.ResultPlanningClient;
-//import ru.etu.controlservice.service.SegmentationClient;
-//import ru.etu.controlservice.service.TreatmentPlanningClient;
+//import ru.etu.controlservice.service.GrpcClient.ResultPlanningClient;
+//import ru.etu.controlservice.service.GrpcClient.SegmentationClient;
+//import ru.etu.controlservice.service.GrpcClient.TreatmentPlanningClient;
 //
 //import java.util.List;
 //

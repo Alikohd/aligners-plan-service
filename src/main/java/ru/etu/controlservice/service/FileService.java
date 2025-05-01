@@ -5,7 +5,9 @@ import lombok.SneakyThrows;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 import ru.etu.controlservice.dto.FileDto;
+import ru.etu.controlservice.exceptions.S3OperationException;
 import ru.etu.controlservice.repository.S3Repository;
 import ru.etu.controlservice.util.UserFolderUtils;
 
@@ -19,11 +21,17 @@ import java.util.UUID;
 public class FileService {
     private final S3Repository s3Repository;
 
-    public String saveFile(InputStream file, UUID patientId, UUID caseId) {
+    public String saveFile(MultipartFile file, UUID patientId, UUID caseId) {
+        InputStream fileStream;
+        try {
+            fileStream = file.getInputStream();
+        } catch (IOException e) {
+            throw new S3OperationException("Error occurred when reading file", e);
+        }
         String fileUuid = UUID.randomUUID().toString().replaceAll("-", "");
         String filePath = UserFolderUtils.addPatientFolder(patientId, caseId, fileUuid);
 
-        s3Repository.saveFile(filePath, file);
+        s3Repository.saveFile(filePath, fileStream);
         return filePath;
     }
 

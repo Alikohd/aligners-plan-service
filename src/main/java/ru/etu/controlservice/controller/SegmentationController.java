@@ -93,7 +93,7 @@ public class SegmentationController {
             @Parameter(description = "Идентификатор узла", example = "123e4567-e89b-12d3-a456-426614174002") @RequestParam(value = "node", required = false) UUID nodeId,
             @Parameter(description = "STL-файл нижней челюсти") @RequestParam("jawLowerStl") MultipartFile jawLowerStl,
             @Parameter(description = "STL-файл верхней челюсти") @RequestParam("jawUpperStl") MultipartFile jawUpperStl) throws IOException {
-        return segmentationService.startJawSegmentation(patientId, caseId, nodeId, jawUpperStl.getInputStream(), jawLowerStl.getInputStream());
+        return segmentationService.startJawSegmentation(patientId, caseId, nodeId, jawUpperStl, jawLowerStl);
     }
 
     @PostMapping(value = "/jaw-adjust", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
@@ -110,7 +110,7 @@ public class SegmentationController {
             @Parameter(description = "Идентификатор узла", example = "123e4567-e89b-12d3-a456-426614174002") @RequestParam("node") UUID nodeId,
             @Parameter(description = "Новый STL-файл нижней челюсти") @RequestParam("jawLowerStl") MultipartFile jawLowerStl,
             @Parameter(description = "Новый STL-файл верхней челюсти") @RequestParam("jawUpperStl") MultipartFile jawUpperStl) throws IOException {
-        return segmentationService.adjustJaw(patientId, caseId, nodeId, jawUpperStl.getInputStream(), jawLowerStl.getInputStream());
+        return segmentationService.adjustJaw(patientId, caseId, nodeId, jawUpperStl, jawLowerStl);
     }
 
     @PostMapping("/jaw-adjust-inline")
@@ -143,7 +143,7 @@ public class SegmentationController {
             @Parameter(description = "Архив с данными КТ") @RequestParam("ctArchive") MultipartFile ctArchive,
             @Parameter(description = "STL-файл нижней челюсти") @RequestParam("jawLowerStl") MultipartFile jawLowerStl,
             @Parameter(description = "STL-файл верхней челюсти") @RequestParam("jawUpperStl") MultipartFile jawUpperStl) throws IOException {
-        return segmentationService.prepareForAlignment(patientId, caseId, ctArchive, jawUpperStl.getInputStream(), jawLowerStl.getInputStream());
+        return segmentationService.prepareForAlignment(patientId, caseId, ctArchive, jawUpperStl, jawLowerStl);
     }
 
     @PostMapping("/alignment")

@@ -37,16 +37,18 @@ public class SegmentationService {
     private final TaskService taskService;
     private final ObjectMapper objectMapper = new ObjectMapper();
     private final NodeContentUtils nodeContentUtils;
+    private final SegmentationValidationService validationService;
     private final List<NodeType> NODES_REQUIRED_FOR_ALIGNMENT = List.of(NodeType.SEGMENTATION_CT, NodeType.SEGMENTATION_JAW);
 
     @Transactional
     public NodePairDto prepareForAlignment(UUID patientId, UUID caseId, MultipartFile ctArchive,
-                                           InputStream jawUpperStl, InputStream jawLowerStl) {
+                                           MultipartFile jawUpperStl, MultipartFile jawLowerStl) {
         TreatmentCase tCase = caseService.getCaseById(patientId, caseId);
+        validationService.validateCtArchive(ctArchive);
+        validationService.validateStlFiles(jawUpperStl, jawLowerStl);
 
         Node ctNode = nodeService.addStepToEnd(tCase);
         Node jawNode = nodeService.addStepToEnd(tCase);
-
 //        maybe move saving into CtProcessor and JawProcessor due to long loading time (especially for PACS) in Transaction
 //        likely possible with adding files validation
         List<DicomDto> dicomDtos = pacsService.sendInstance(ctArchive, caseId);
@@ -77,6 +79,7 @@ public class SegmentationService {
         log.debug("Starting ct segmentation");
         TreatmentCase tCase = caseService.getCaseById(patientId, caseId);
         log.debug("Case was retrieved");
+        validationService.validateCtArchive(ctArchive);
         Node ctNode;
         if (nodeId != null) {
             Node currentNode = nodeService.getNode(nodeId);
@@ -89,8 +92,8 @@ public class SegmentationService {
 
     public MetaNodeDto adjustCtInline(UUID patientId, UUID caseId, UUID nodeId, MultipartFile amendedCtMask) {
         caseService.getCaseById(patientId, caseId); // for validation
+        validationService.validateCtArchive(amendedCtMask);
         Node currentCtNode = nodeService.getNode(nodeId);
-
         List<DicomDto> dicomDtos = pacsService.sendInstance(amendedCtMask, caseId);
         String ctCorrected = dicomDtos.get(0).parentSeries();
         currentCtNode.getCtSegmentation().getCtMask().setUri(ctCorrected);
@@ -102,6 +105,7 @@ public class SegmentationService {
     @Transactional
     public MetaNodeDto adjustCt(UUID patientId, UUID caseId, UUID nodeId, MultipartFile ctArchive) {
         caseService.getCaseById(patientId, caseId);
+        validationService.validateCtArchive(ctArchive);
         Node currentCtNode = nodeService.getNode(nodeId);
         Node newNode = nodeService.addStepTo(currentCtNode.getPrevNode());
         return pendCtTask(caseId, ctArchive, newNode);
@@ -116,16 +120,18 @@ public class SegmentationService {
     }
 
     @Transactional
-    public MetaNodeDto adjustJaw(UUID patientId, UUID caseId, UUID nodeId, InputStream jawUpperStl, InputStream jawLowerStl) {
+    public MetaNodeDto adjustJaw(UUID patientId, UUID caseId, UUID nodeId, MultipartFile jawUpperStl, MultipartFile jawLowerStl) {
         caseService.getCaseById(patientId, caseId);
+        validationService.validateStlFiles(jawUpperStl, jawLowerStl);
         Node currentJawNode = nodeService.getNode(nodeId);
         Node newNode = nodeService.addStepTo(currentJawNode.getPrevNode());
         return pendJawTask(patientId, caseId, jawUpperStl, jawLowerStl, newNode);
     }
 
     @Transactional
-    public MetaNodeDto startJawSegmentation(UUID patientId, UUID caseId, UUID nodeId, InputStream jawUpperStl, InputStream jawLowerStl) {
+    public MetaNodeDto startJawSegmentation(UUID patientId, UUID caseId, UUID nodeId, MultipartFile jawUpperStl, MultipartFile jawLowerStl) {
         TreatmentCase tCase = caseService.getCaseById(patientId, caseId);
+        validationService.validateStlFiles(jawUpperStl, jawLowerStl);
         Node jawNode;
         if (nodeId != null) {
             Node currentNode = nodeService.getNode(nodeId);
@@ -180,7 +186,7 @@ public class SegmentationService {
         return nodeMapper.toDto(newNode);
     }
 
-    private MetaNodeDto pendJawTask(UUID patientId, UUID caseId, InputStream jawUpperStl, InputStream jawLowerStl, Node newNode) {
+    private MetaNodeDto pendJawTask(UUID patientId, UUID caseId, MultipartFile jawUpperStl, MultipartFile jawLowerStl, Node newNode) {
         String jawUpperStlSaved = fileService.saveFile(jawUpperStl, patientId, caseId);
         String jawLowerStlSaved = fileService.saveFile(jawLowerStl, patientId, caseId);
 

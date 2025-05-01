@@ -17,13 +17,14 @@ public class SegmentationValidationService {
             "application/octet-stream",
             "application/vnd.ms-pki.stl"
     );
+
     /**
      * Validates that the uploaded file is a ZIP archive containing only .dcm files,
      * allowing nested folders.
      *
      * @param ctArchive the uploaded ZIP file
      * @throws IllegalArgumentException if the file is not a ZIP archive, contains non-.dcm files,
-     *                                 or has no .dcm files
+     *                                  or has no .dcm files
      */
     public void validateCtArchive(MultipartFile ctArchive) {
         // Check if the file is a ZIP archive

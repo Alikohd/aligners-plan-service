@@ -20,7 +20,6 @@ import ru.etu.controlservice.entity.TreatmentCase;
 import ru.etu.controlservice.mapper.NodeMapper;
 import ru.etu.controlservice.util.NodeContentUtils;
 
-import java.io.InputStream;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;

@@ -1,12 +1,12 @@
 package ru.etu.controlservice.entity;
 
+import com.fasterxml.uuid.Generators;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -24,7 +24,6 @@ import java.util.UUID;
 @Table(name = "file")
 public class File {
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
     @Column(name = "uri")
@@ -54,5 +53,12 @@ public class File {
         file.setUri(uri);
         file.setStorageType(StorageType.PACS);
         return file;
+    }
+
+    @PrePersist
+    public void prePersist() {
+        if (this.id == null) {
+            this.id = Generators.timeBasedEpochGenerator().generate(); // UUID v7 generation
+        }
     }
 }

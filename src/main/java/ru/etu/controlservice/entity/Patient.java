@@ -1,11 +1,11 @@
 package ru.etu.controlservice.entity;
 
+import com.fasterxml.uuid.Generators;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
+import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -29,7 +29,6 @@ import java.util.UUID;
 @Table(name = "patient")
 public class Patient {
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
     @OneToMany(mappedBy = "patient")
@@ -48,5 +47,12 @@ public class Patient {
     public void addCase(TreatmentCase tc) {
         cases.add(tc);
         tc.setPatient(this);
+    }
+
+    @PrePersist
+    public void prePersist() {
+        if (this.id == null) {
+            this.id = Generators.timeBasedEpochGenerator().generate(); // UUID v7 generation
+        }
     }
 }

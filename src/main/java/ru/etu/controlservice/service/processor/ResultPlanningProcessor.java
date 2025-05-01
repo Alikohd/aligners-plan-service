@@ -7,11 +7,12 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import ru.etu.controlservice.dto.task.ResultPlanningPayload;
 import ru.etu.controlservice.entity.AlignmentSegmentation;
+import ru.etu.controlservice.entity.File;
 import ru.etu.controlservice.entity.Node;
 import ru.etu.controlservice.entity.NodeType;
 import ru.etu.controlservice.repository.NodeRepository;
-import ru.etu.controlservice.service.GrpcClient.ResultPlanningClient;
 import ru.etu.controlservice.service.SegmentationNodeUpdater;
+import ru.etu.controlservice.service.client.ResultPlanningClient;
 import ru.etu.controlservice.util.ProtobufUtils;
 import ru.etu.grpc.segmentation.AnatomicalStructure;
 
@@ -43,7 +44,7 @@ public class ResultPlanningProcessor implements TaskProcessor {
                 throw new IllegalStateException("AlignmentSegmentation not found for node " + alignmentNodeId);
             }
 
-            List<String> stls = alignmentSegmentation.getToothRefs();
+            List<String> stls = alignmentSegmentation.getToothRefs().stream().map(File::getUri).toList();
             List<JsonNode> initTeethMatrices = alignmentSegmentation.getInitTeethMatrices();
             List<Struct> structsMatrices = ProtobufUtils.jsonNodesToStructs(initTeethMatrices);
 

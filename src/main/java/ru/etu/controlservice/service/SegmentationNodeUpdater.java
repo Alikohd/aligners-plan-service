@@ -72,9 +72,10 @@ public class SegmentationNodeUpdater {
                                          List<String> stlToothRefs, List<Struct> initTeethMatrices) {
         log.debug("Setting Alignment...");
         List<JsonNode> jawsSegmented = ProtobufUtils.structsToJsonNodes(initTeethMatrices);
+        List<File> toothRefFiles = stlToothRefs.stream().map(File::fromS3).toList();
         AlignmentSegmentation alignmentSegmentation = AlignmentSegmentation.builder()
                 .initTeethMatrices(jawsSegmented)
-                .toothRefs(stlToothRefs)
+                .toothRefs(toothRefFiles)
                 .build();
         alignmentSegRepository.save(alignmentSegmentation);
         node.setAlignmentSegmentation(alignmentSegmentation);
@@ -94,11 +95,11 @@ public class SegmentationNodeUpdater {
 
 //    @Transactional
 //    public void setTreatmentPlanning(Node node,
-//                                     List<String> collectionOfMatricesGroups, List<String> attachments) {
+//                                     List<String> collectionOfMatricesGroups, List<String> attachment) {
 //        log.debug("Setting TreatmentPlanning...");
 //        TreatmentPlanning treatmentPlanning = TreatmentPlanning.builder()
 //                .treatmentStepMatrixGroups(collectionOfMatricesGroups)
-//                .attachments(attachments)
+//                .attachment(attachment)
 //                .build();
 //        treatmentPlanningRepository.save(treatmentPlanning);
 //        node.setTreatmentPlanning(treatmentPlanning);
@@ -111,7 +112,7 @@ public class SegmentationNodeUpdater {
         log.debug("Setting TreatmentPlanning steps...");
 
         if (matrixGroups.size() != attachments.size()) {
-            throw new IllegalArgumentException("Mismatch between matrix groups and attachments size");
+            throw new IllegalArgumentException("Mismatch between matrix groups and attachment size");
         }
         Node currNode = lastNode;
         for (int i = 0; i < matrixGroups.size(); i++) {

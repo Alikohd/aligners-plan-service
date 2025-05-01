@@ -2,9 +2,11 @@ package ru.etu.controlservice.entity;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.uuid.Generators;
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
@@ -32,13 +34,11 @@ public class AlignmentSegmentation {
     @Id
     private UUID id;
 
-    //    todo изменить на File
-    @JdbcTypeCode(SqlTypes.JSON)
-    @Column(name = "tooth_refs")
-    private List<String> toothRefs;
+    @OneToMany(cascade = CascadeType.PERSIST)
+    private List<File> toothRefs;
 
     @JdbcTypeCode(SqlTypes.JSON)
-    @Column(name = "init_teeth_marices")
+    @Column(name = "init_teeth_matrices")
     private List<JsonNode> initTeethMatrices;
 
     @CreationTimestamp

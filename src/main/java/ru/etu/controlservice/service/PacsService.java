@@ -6,6 +6,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.core.io.ByteArrayResource;
+import org.springframework.core.io.Resource;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
@@ -110,6 +112,20 @@ public class PacsService {
                         .build()))
                 .retrieve()
                 .body(byte[].class);
+    }
+
+    public Resource getZippedSeriesAsResource(String id) {
+        byte[] zipData = restClient.post()
+                .uri(pacsBase + "/series/" + id + "/archive")
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(new Gson().toJson(PacsZipCreationRequestDto.builder()
+                        .asynchronous(false)
+                        .priority(0)
+                        .synchronous(true)
+                        .build()))
+                .retrieve()
+                .body(byte[].class);
+        return new ByteArrayResource(zipData);
     }
 
 }

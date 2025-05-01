@@ -61,14 +61,45 @@
                 <constraints primaryKey="true" nullable="false"/>
             </column>
             <column name="created_at" type="timestamp(6)"/>
-            <column name="init_teeth_marices" type="jsonb"/>
-            <column name="tooth_refs" type="jsonb"/>
+            <column name="init_teeth_matrices" type="jsonb"/>
             <column name="updated_at" type="timestamp(6)"/>
         </createTable>
     </changeSet>
 
+    <!-- Table: alignment_segmentation_tooth_refs -->
+    <changeSet id="4-create-alignment-segmentation-tooth-refs-table" author="you">
+        <createTable tableName="alignment_segmentation_tooth_refs">
+            <column name="alignment_segmentation_id" type="uuid">
+                <constraints nullable="false"/>
+            </column>
+            <column name="tooth_refs_id" type="uuid">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <addForeignKeyConstraint
+                baseTableName="alignment_segmentation_tooth_refs"
+                baseColumnNames="alignment_segmentation_id"
+                constraintName="fk94dc2r5eb0cxwbyq52yvcwdmj"
+                referencedTableName="alignment_segmentation"
+                referencedColumnNames="id"/>
+        <addForeignKeyConstraint
+                baseTableName="alignment_segmentation_tooth_refs"
+                baseColumnNames="tooth_refs_id"
+                constraintName="fkrrc5kfa4ypnwuhks9avvowe7i"
+                referencedTableName="file"
+                referencedColumnNames="id"/>
+        <addUniqueConstraint
+                columnNames="tooth_refs_id"
+                tableName="alignment_segmentation_tooth_refs"
+                constraintName="uklbmfgj70hvjshgj0j7c29te6s"/>
+        <sql>
+            ALTER TABLE alignment_segmentation_tooth_refs
+                OWNER TO postgres;
+        </sql>
+    </changeSet>
+
     <!-- Table: jaw_segmentation -->
-    <changeSet id="4-create-jaw-segmentation-table" author="you">
+    <changeSet id="5-create-jaw-segmentation-table" author="you">
         <createTable tableName="jaw_segmentation">
             <column name="id" type="uuid">
                 <constraints primaryKey="true" nullable="false"/>
@@ -102,7 +133,7 @@
     </changeSet>
 
     <!-- Table: patient -->
-    <changeSet id="5-create-patient-table" author="you">
+    <changeSet id="6-create-patient-table" author="you">
         <createTable tableName="patient">
             <column name="id" type="uuid">
                 <constraints primaryKey="true" nullable="false"/>
@@ -113,7 +144,7 @@
     </changeSet>
 
     <!-- Table: result_planning -->
-    <changeSet id="6-create-result-planning-table" author="you">
+    <changeSet id="7-create-result-planning-table" author="you">
         <createTable tableName="result_planning">
             <column name="id" type="uuid">
                 <constraints primaryKey="true" nullable="false"/>
@@ -125,7 +156,7 @@
     </changeSet>
 
     <!-- Table: treatment_planning -->
-    <changeSet id="7-create-treatment-planning-table" author="you">
+    <changeSet id="8-create-treatment-planning-table" author="you">
         <createTable tableName="treatment_planning">
             <column name="id" type="uuid">
                 <constraints primaryKey="true" nullable="false"/>
@@ -138,7 +169,7 @@
     </changeSet>
 
     <!-- Table: node -->
-    <changeSet id="8-create-node-table" author="you">
+    <changeSet id="9-create-node-table" author="you">
         <createTable tableName="node">
             <column name="id" type="uuid">
                 <constraints primaryKey="true" nullable="false"/>
@@ -211,7 +242,7 @@
     </changeSet>
 
     <!-- Table: treatment_case -->
-    <changeSet id="9-create-treatment-case-table" author="you">
+    <changeSet id="10-create-treatment-case-table" author="you">
         <createTable tableName="treatment_case">
             <column name="id" type="uuid">
                 <constraints primaryKey="true" nullable="false"/>
@@ -241,7 +272,7 @@
                 referencedColumnNames="id"/>
     </changeSet>
 
-    <changeSet id="10-create-int-channel-message" author="you">
+    <changeSet id="11-create-int-channel-message" author="you">
         <!-- Creating sequence INT_MESSAGE_SEQ -->
         <createSequence
                 sequenceName="INT_MESSAGE_SEQ"

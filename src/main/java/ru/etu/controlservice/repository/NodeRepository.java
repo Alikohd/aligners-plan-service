@@ -21,4 +21,7 @@ public interface NodeRepository extends JpaRepository<Node, UUID> {
 
     @Query("SELECT n FROM Node n LEFT JOIN FETCH n.resultPlanning WHERE n.id = :id")
     Optional<Node> findByIdWithResultPlanning(@Param("id") UUID id);
+
+    @Query("SELECT n FROM Node n LEFT JOIN FETCH n.treatmentPlanning WHERE n.id = :id")
+    Optional<Node> findByIdWithTreatmentPlanning(@Param("id") UUID id);
 }

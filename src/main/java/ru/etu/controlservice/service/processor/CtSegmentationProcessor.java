@@ -8,8 +8,8 @@ import org.springframework.stereotype.Component;
 import ru.etu.controlservice.dto.task.SegmentationCtPayload;
 import ru.etu.controlservice.entity.Node;
 import ru.etu.controlservice.entity.NodeType;
-import ru.etu.controlservice.service.GrpcClient.SegmentationClient;
 import ru.etu.controlservice.service.SegmentationNodeUpdater;
+import ru.etu.controlservice.service.client.SegmentationClient;
 
 @Component
 @RequiredArgsConstructor

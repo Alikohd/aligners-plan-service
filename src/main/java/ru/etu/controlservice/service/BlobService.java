@@ -18,7 +18,7 @@ import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
-public class FileService {
+public class BlobService {
     private final S3Repository s3Repository;
 
     public String saveFile(MultipartFile file, UUID patientId, UUID caseId) {

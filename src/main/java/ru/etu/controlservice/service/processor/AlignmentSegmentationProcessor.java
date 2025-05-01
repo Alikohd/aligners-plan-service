@@ -11,8 +11,8 @@ import ru.etu.controlservice.entity.JawSegmentation;
 import ru.etu.controlservice.entity.Node;
 import ru.etu.controlservice.entity.NodeType;
 import ru.etu.controlservice.repository.NodeRepository;
-import ru.etu.controlservice.service.GrpcClient.SegmentationClient;
 import ru.etu.controlservice.service.SegmentationNodeUpdater;
+import ru.etu.controlservice.service.client.SegmentationClient;
 import ru.etu.grpc.segmentation.AnatomicalStructure;
 
 import java.util.List;

@@ -31,7 +31,7 @@ public class SegmentationService {
     private final TreatmentCaseService caseService;
     private final NodeService nodeService;
     private final PacsService pacsService;
-    private final FileService fileService;
+    private final BlobService blobService;
     private final NodeMapper nodeMapper;
     private final TaskService taskService;
     private final ObjectMapper objectMapper = new ObjectMapper();
@@ -51,8 +51,8 @@ public class SegmentationService {
 //        maybe move saving into CtProcessor and JawProcessor due to long loading time (especially for PACS) in Transaction
 //        likely possible with adding files validation
         List<DicomDto> dicomDtos = pacsService.sendInstance(ctArchive, caseId);
-        String jawUpperStlSaved = fileService.saveFile(jawUpperStl, patientId, caseId);
-        String jawLowerStlSaved = fileService.saveFile(jawLowerStl, patientId, caseId);
+        String jawUpperStlSaved = blobService.saveFile(jawUpperStl, patientId, caseId);
+        String jawLowerStlSaved = blobService.saveFile(jawLowerStl, patientId, caseId);
         String ctOriginal = dicomDtos.get(0).parentSeries();
 
         NodePairDto initialResult = new NodePairDto(
@@ -186,8 +186,8 @@ public class SegmentationService {
     }
 
     private MetaNodeDto pendJawTask(UUID patientId, UUID caseId, MultipartFile jawUpperStl, MultipartFile jawLowerStl, Node newNode) {
-        String jawUpperStlSaved = fileService.saveFile(jawUpperStl, patientId, caseId);
-        String jawLowerStlSaved = fileService.saveFile(jawLowerStl, patientId, caseId);
+        String jawUpperStlSaved = blobService.saveFile(jawUpperStl, patientId, caseId);
+        String jawLowerStlSaved = blobService.saveFile(jawLowerStl, patientId, caseId);
 
         SegmentationJawPayload payload = new SegmentationJawPayload(jawUpperStlSaved, jawLowerStlSaved);
         String payloadJson;

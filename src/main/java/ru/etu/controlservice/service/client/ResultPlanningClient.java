@@ -1,4 +1,4 @@
-package ru.etu.controlservice.service.GrpcClient;
+package ru.etu.controlservice.service.client;
 
 import com.google.protobuf.Struct;
 import io.grpc.Status;

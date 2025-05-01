@@ -5,15 +5,16 @@ import com.google.protobuf.Struct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-import ru.etu.controlservice.dto.grpc.TreatmentPlanningDto;
+import ru.etu.controlservice.dto.grpc.TreatmentPlanningGrpcDto;
 import ru.etu.controlservice.dto.task.TreatmentPlanningPayload;
 import ru.etu.controlservice.entity.AlignmentSegmentation;
+import ru.etu.controlservice.entity.File;
 import ru.etu.controlservice.entity.Node;
 import ru.etu.controlservice.entity.NodeType;
 import ru.etu.controlservice.entity.ResultPlanning;
 import ru.etu.controlservice.repository.NodeRepository;
-import ru.etu.controlservice.service.GrpcClient.TreatmentPlanningClient;
 import ru.etu.controlservice.service.SegmentationNodeUpdater;
+import ru.etu.controlservice.service.client.TreatmentPlanningClient;
 import ru.etu.controlservice.util.NodeContentUtils;
 import ru.etu.controlservice.util.ProtobufUtils;
 import ru.etu.grpc.treatmentplanning.FinalAnatomicalStructure;
@@ -54,7 +55,7 @@ public class TreatmentPlanningProcessor implements TaskProcessor {
                 throw new IllegalStateException("AlignmentSegmentation not found for node " + resultPlanningId);
             }
 
-            List<String> stls = alignmentSegmentation.getToothRefs();
+            List<String> stls = alignmentSegmentation.getToothRefs().stream().map(File::getUri).toList();
             List<JsonNode> initTeethMatrices = alignmentSegmentation.getInitTeethMatrices();
             List<JsonNode> desiredTeethMatrices = resultPlanning.getDesiredTeethMatrices();
 
@@ -73,18 +74,18 @@ public class TreatmentPlanningProcessor implements TaskProcessor {
                             .build())
                     .toList();
 
-            TreatmentPlanningDto treatmentPlanningDto = treatmentPlanningClient.planTreatment(finalAnatomicalStructures);
-            if (treatmentPlanningDto == null) {
+            TreatmentPlanningGrpcDto treatmentPlanningGrpcDto = treatmentPlanningClient.planTreatment(finalAnatomicalStructures);
+            if (treatmentPlanningGrpcDto == null) {
                 log.error("TreatmentPlanning returned null for node {}", node.getId());
                 throw new RuntimeException("TreatmentPlanning returned null result");
             }
 
             segmentationNodeUpdater.setTreatmentPlanning(node,
-                    ProtobufUtils.structsToJsonNodes(treatmentPlanningDto.collectionsOfMatricesGroups()),
-                    ProtobufUtils.structsToJsonNodes(treatmentPlanningDto.attachments()));
+                    ProtobufUtils.structsToJsonNodes(treatmentPlanningGrpcDto.collectionsOfMatricesGroups()),
+                    ProtobufUtils.structsToJsonNodes(treatmentPlanningGrpcDto.attachments()));
 
             log.info("Successfully processed TREATMENT_PLANNING for node {} with {} steps",
-                    node.getId(), treatmentPlanningDto.collectionsOfMatricesGroups().size());
+                    node.getId(), treatmentPlanningGrpcDto.collectionsOfMatricesGroups().size());
 
         } catch (Exception e) {
             log.error("Failed to process TREATMENT_PLANNING task for node {}: {}", node.getId(), e.getMessage(), e);

@@ -13,7 +13,7 @@ import ru.etu.controlservice.entity.Node;
 import ru.etu.controlservice.entity.NodeType;
 import ru.etu.controlservice.entity.ResultPlanning;
 import ru.etu.controlservice.repository.NodeRepository;
-import ru.etu.controlservice.service.SegmentationNodeUpdater;
+import ru.etu.controlservice.service.NodeUpdater;
 import ru.etu.controlservice.service.client.TreatmentPlanningClient;
 import ru.etu.controlservice.util.NodeContentUtils;
 import ru.etu.controlservice.util.ProtobufUtils;
@@ -28,7 +28,7 @@ import java.util.stream.IntStream;
 @Slf4j
 public class TreatmentPlanningProcessor implements TaskProcessor {
     private final TreatmentPlanningClient treatmentPlanningClient;
-    private final SegmentationNodeUpdater segmentationNodeUpdater;
+    private final NodeUpdater nodeUpdater;
     private final NodeRepository nodeRepository;
     private final NodeContentUtils nodeContentUtils;
 
@@ -80,7 +80,7 @@ public class TreatmentPlanningProcessor implements TaskProcessor {
                 throw new RuntimeException("TreatmentPlanning returned null result");
             }
 
-            segmentationNodeUpdater.setTreatmentPlanning(node,
+            nodeUpdater.setTreatmentPlanning(node,
                     ProtobufUtils.structsToJsonNodes(treatmentPlanningGrpcDto.collectionsOfMatricesGroups()),
                     ProtobufUtils.structsToJsonNodes(treatmentPlanningGrpcDto.attachments()));
 

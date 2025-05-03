@@ -8,7 +8,7 @@ import org.springframework.stereotype.Component;
 import ru.etu.controlservice.dto.task.SegmentationCtPayload;
 import ru.etu.controlservice.entity.Node;
 import ru.etu.controlservice.entity.NodeType;
-import ru.etu.controlservice.service.SegmentationNodeUpdater;
+import ru.etu.controlservice.service.NodeUpdater;
 import ru.etu.controlservice.service.client.SegmentationClient;
 
 @Component
@@ -16,11 +16,11 @@ import ru.etu.controlservice.service.client.SegmentationClient;
 @Slf4j
 public class CtSegmentationProcessor implements TaskProcessor {
     private final SegmentationClient segmentationClient;
-    private final SegmentationNodeUpdater segmentationNodeUpdater;
+    private final NodeUpdater nodeUpdater;
 
     @PostConstruct
     public void checkProxy() {
-        log.info("SegmentationNodeUpdater является прокси: {}", AopUtils.isAopProxy(segmentationNodeUpdater));
+        log.info("SegmentationNodeUpdater является прокси: {}", AopUtils.isAopProxy(nodeUpdater));
     }
 
     @Override
@@ -30,7 +30,7 @@ public class CtSegmentationProcessor implements TaskProcessor {
             String ctOriginal = ctPayload.ctOriginal();
             log.info("Processing SEGMENTATION_CT for node {}: ctOriginal={}", node.getId(), ctOriginal);
             String ctMask = segmentationClient.segmentCt(ctOriginal);
-            segmentationNodeUpdater.updateCtSegmentation(node, ctOriginal, ctMask);
+            nodeUpdater.updateCtSegmentation(node, ctOriginal, ctMask);
             log.debug("test");
         } catch (Exception e) {
             log.error("Failed to process SEGMENTATION_CT task for node {}: {}", node.getId(), e.getMessage(), e);

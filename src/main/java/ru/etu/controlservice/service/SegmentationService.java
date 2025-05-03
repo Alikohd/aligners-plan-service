@@ -170,11 +170,11 @@ public class SegmentationService {
         return pendAlignmentTask(alignmentNode);
     }
 
-    private MetaNodeDto pendCtTask(UUID caseId, MultipartFile ctOriginal, Node newNode) {
-        List<DicomDto> dicomDtos = pacsService.sendInstance(ctOriginal, caseId);
-        String ctCorrected = dicomDtos.get(0).parentSeries();
+    private MetaNodeDto pendCtTask(UUID caseId, MultipartFile ctArchive, Node newNode) {
+        List<DicomDto> dicomDtos = pacsService.sendInstance(ctArchive, caseId);
+        String ctArchiveUri = dicomDtos.get(0).parentSeries();
 
-        SegmentationCtPayload payload = new SegmentationCtPayload(ctCorrected);
+        SegmentationCtPayload payload = new SegmentationCtPayload(ctArchiveUri);
         String payloadJson;
         try {
             payloadJson = objectMapper.writeValueAsString(payload);

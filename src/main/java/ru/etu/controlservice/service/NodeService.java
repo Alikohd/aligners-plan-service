@@ -59,7 +59,7 @@ public class NodeService {
     }
 
     @Transactional
-    protected Node addStepTo(Node previousNode) {
+    public Node addStepTo(Node previousNode) {
         Node newNode = new Node();
 
         createBidirectionalRelation(previousNode, newNode);

@@ -11,7 +11,7 @@ import ru.etu.controlservice.entity.File;
 import ru.etu.controlservice.entity.Node;
 import ru.etu.controlservice.entity.NodeType;
 import ru.etu.controlservice.repository.NodeRepository;
-import ru.etu.controlservice.service.SegmentationNodeUpdater;
+import ru.etu.controlservice.service.NodeUpdater;
 import ru.etu.controlservice.service.client.ResultPlanningClient;
 import ru.etu.controlservice.util.ProtobufUtils;
 import ru.etu.grpc.segmentation.AnatomicalStructure;
@@ -25,7 +25,7 @@ import java.util.stream.IntStream;
 @Slf4j
 public class ResultPlanningProcessor implements TaskProcessor {
     private final ResultPlanningClient resultPlanningClient;
-    private final SegmentationNodeUpdater segmentationNodeUpdater;
+    private final NodeUpdater nodeUpdater;
     private final NodeRepository nodeRepository;
 
     @Override
@@ -62,7 +62,7 @@ public class ResultPlanningProcessor implements TaskProcessor {
             }
 
             List<JsonNode> desiredTeethMatrices = ProtobufUtils.structsToJsonNodes(desiredTeethMatricesStructs);
-            segmentationNodeUpdater.setResultPlanning(node, desiredTeethMatrices);
+            nodeUpdater.setResultPlanning(node, desiredTeethMatrices);
         } catch (Exception e) {
             log.error("Failed to process RESULT_PLANNING task for node {}: {}", node.getId(), e.getMessage(), e);
             throw new RuntimeException("Failed to process RESULT_PLANNING task", e);

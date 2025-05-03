@@ -11,7 +11,7 @@ import ru.etu.controlservice.entity.JawSegmentation;
 import ru.etu.controlservice.entity.Node;
 import ru.etu.controlservice.entity.NodeType;
 import ru.etu.controlservice.repository.NodeRepository;
-import ru.etu.controlservice.service.SegmentationNodeUpdater;
+import ru.etu.controlservice.service.NodeUpdater;
 import ru.etu.controlservice.service.client.SegmentationClient;
 import ru.etu.grpc.segmentation.AnatomicalStructure;
 
@@ -23,7 +23,7 @@ import java.util.UUID;
 @Slf4j
 public class AlignmentSegmentationProcessor implements TaskProcessor {
     private final SegmentationClient segmentationClient;
-    private final SegmentationNodeUpdater segmentationNodeUpdater;
+    private final NodeUpdater nodeUpdater;
     private final NodeRepository nodeRepository;
 
     @Override
@@ -68,7 +68,7 @@ public class AlignmentSegmentationProcessor implements TaskProcessor {
             List<Struct> initMatrices = alignmentSegmentationResponse.stream()
                     .map(AnatomicalStructure::getInitMatrix)
                     .toList();
-            segmentationNodeUpdater.setAlignmentSegmentation(node, stls, initMatrices);
+            nodeUpdater.setAlignmentSegmentation(node, stls, initMatrices);
         } catch (Exception e) {
             log.error("Failed to process SEGMENTATION_ALIGNMENT task for node {}: {}", node.getId(), e.getMessage(), e);
             throw new MessagingException("Failed to process SEGMENTATION_ALIGNMENT task", e);

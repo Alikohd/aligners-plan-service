@@ -5,7 +5,7 @@
         xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.9.xsd">
 
     <!-- Table: file -->
-    <changeSet id="1-create-file-table" author="you">
+    <changeSet id="1-create-file-table" author="aleksandr">
         <createTable tableName="file">
             <column name="id" type="uuid">
                 <constraints primaryKey="true" nullable="false"/>
@@ -22,7 +22,7 @@
     </changeSet>
 
     <!-- Table: ct_segmentation -->
-    <changeSet id="2-create-ct-segmentation-table" author="you">
+    <changeSet id="2-create-ct-segmentation-table" author="aleksandr">
         <createTable tableName="ct_segmentation">
             <column name="id" type="uuid">
                 <constraints primaryKey="true" nullable="false"/>
@@ -55,7 +55,7 @@
     </changeSet>
 
     <!-- Table: alignment_segmentation -->
-    <changeSet id="3-create-alignment-segmentation-table" author="you">
+    <changeSet id="3-create-alignment-segmentation-table" author="aleksandr">
         <createTable tableName="alignment_segmentation">
             <column name="id" type="uuid">
                 <constraints primaryKey="true" nullable="false"/>
@@ -67,7 +67,7 @@
     </changeSet>
 
     <!-- Table: alignment_segmentation_tooth_refs -->
-    <changeSet id="4-create-alignment-segmentation-tooth-refs-table" author="you">
+    <changeSet id="4-create-alignment-segmentation-tooth-refs-table" author="aleksandr">
         <createTable tableName="alignment_segmentation_tooth_refs">
             <column name="alignment_segmentation_id" type="uuid">
                 <constraints nullable="false"/>
@@ -92,14 +92,10 @@
                 columnNames="tooth_refs_id"
                 tableName="alignment_segmentation_tooth_refs"
                 constraintName="uklbmfgj70hvjshgj0j7c29te6s"/>
-        <sql>
-            ALTER TABLE alignment_segmentation_tooth_refs
-                OWNER TO postgres;
-        </sql>
     </changeSet>
 
     <!-- Table: jaw_segmentation -->
-    <changeSet id="5-create-jaw-segmentation-table" author="you">
+    <changeSet id="5-create-jaw-segmentation-table" author="aleksandr">
         <createTable tableName="jaw_segmentation">
             <column name="id" type="uuid">
                 <constraints primaryKey="true" nullable="false"/>
@@ -133,7 +129,7 @@
     </changeSet>
 
     <!-- Table: patient -->
-    <changeSet id="6-create-patient-table" author="you">
+    <changeSet id="6-create-patient-table" author="aleksandr">
         <createTable tableName="patient">
             <column name="id" type="uuid">
                 <constraints primaryKey="true" nullable="false"/>
@@ -144,7 +140,7 @@
     </changeSet>
 
     <!-- Table: result_planning -->
-    <changeSet id="7-create-result-planning-table" author="you">
+    <changeSet id="7-create-result-planning-table" author="aleksandr">
         <createTable tableName="result_planning">
             <column name="id" type="uuid">
                 <constraints primaryKey="true" nullable="false"/>
@@ -156,7 +152,7 @@
     </changeSet>
 
     <!-- Table: treatment_planning -->
-    <changeSet id="8-create-treatment-planning-table" author="you">
+    <changeSet id="8-create-treatment-planning-table" author="aleksandr">
         <createTable tableName="treatment_planning">
             <column name="id" type="uuid">
                 <constraints primaryKey="true" nullable="false"/>
@@ -169,7 +165,7 @@
     </changeSet>
 
     <!-- Table: node -->
-    <changeSet id="9-create-node-table" author="you">
+    <changeSet id="9-create-node-table" author="aleksandr">
         <createTable tableName="node">
             <column name="id" type="uuid">
                 <constraints primaryKey="true" nullable="false"/>
@@ -242,7 +238,7 @@
     </changeSet>
 
     <!-- Table: treatment_case -->
-    <changeSet id="10-create-treatment-case-table" author="you">
+    <changeSet id="10-create-treatment-case-table" author="aleksandr">
         <createTable tableName="treatment_case">
             <column name="id" type="uuid">
                 <constraints primaryKey="true" nullable="false"/>
@@ -272,7 +268,7 @@
                 referencedColumnNames="id"/>
     </changeSet>
 
-    <changeSet id="11-create-int-channel-message" author="you">
+    <changeSet id="11-create-int-channel-message" author="aleksandr">
         <!-- Creating sequence INT_MESSAGE_SEQ -->
         <createSequence
                 sequenceName="INT_MESSAGE_SEQ"

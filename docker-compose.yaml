@@ -1,6 +1,6 @@
 services:
   minio:
-    image: quay.io/minio/minio
+    image: quay.io/minio/minio:RELEASE.2024-11-07T00-52-20Z.hotfix.2e4a5c31f
     container_name: minio
     ports:
       - "9000:9000"

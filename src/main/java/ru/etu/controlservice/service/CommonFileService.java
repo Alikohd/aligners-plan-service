@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
 import ru.etu.controlservice.entity.File;
+import ru.etu.controlservice.exceptions.FileNotFoundException;
 import ru.etu.controlservice.repository.FileRepository;
 
 import java.util.UUID;
@@ -17,7 +18,7 @@ public class CommonFileService {
 
     public Resource getFile(UUID fileId) {
         File file = fileRepository.findById(fileId)
-                .orElseThrow(() -> new IllegalArgumentException(String.format("File with id %s not found", fileId)));
+                .orElseThrow(() -> new FileNotFoundException(String.format("File with id %s not found", fileId)));
         return switch (file.getStorageType()) {
             case S3 -> blobService.downloadFile(file.getUri()).content();
             case PACS -> pacsService.getZippedSeriesAsResource(file.getUri());

@@ -173,7 +173,7 @@
             <column name="created_at" type="timestamp(6)"/>
             <column name="updated_at" type="timestamp(6)"/>
             <column name="alignment_segmentation_id" type="uuid"/>
-            <column name="сt_segmentation_id" type="uuid"/>
+            <column name="ct_segmentation_id" type="uuid"/>
             <column name="jaw_segmentation_id" type="uuid"/>
             <column name="prev_node_id" type="uuid"/>
             <column name="result_planning_id" type="uuid"/>
@@ -184,7 +184,7 @@
                 tableName="node"
                 constraintName="ukciu037sp04o4mgo0ht48julfp"/>
         <addUniqueConstraint
-                columnNames="сt_segmentation_id"
+                columnNames="ct_segmentation_id"
                 tableName="node"
                 constraintName="ukgkalxy3m6bug1q8vxtsm2n1cy"/>
         <addUniqueConstraint
@@ -207,7 +207,7 @@
                 referencedColumnNames="id"/>
         <addForeignKeyConstraint
                 baseTableName="node"
-                baseColumnNames="сt_segmentation_id"
+                baseColumnNames="ct_segmentation_id"
                 constraintName="fklwwifdced2hejt1yrebo7hkbv"
                 referencedTableName="ct_segmentation"
                 referencedColumnNames="id"/>

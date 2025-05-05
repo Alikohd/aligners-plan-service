@@ -47,7 +47,7 @@ public class Node {
     @OneToOne(cascade = {CascadeType.PERSIST, CascadeType.REMOVE}, fetch = FetchType.LAZY, orphanRemoval = true)
 //    orphanRemoval - при дублировании обработки сообщения, контент часть например ctSegmentation
 //    сохраниться повторно, а в node по которой ставилась задача обновится связь на новую ctSegmentation. Старая будет "висеть"
-    @JoinColumn(name = "сt_segmentation_id")
+    @JoinColumn(name = "ct_segmentation_id")
     private CtSegmentation ctSegmentation;
 
     @OneToOne(cascade = {CascadeType.PERSIST, CascadeType.REMOVE}, fetch = FetchType.LAZY, orphanRemoval = true)

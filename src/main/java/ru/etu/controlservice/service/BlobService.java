@@ -43,7 +43,7 @@ public class BlobService {
         try {
             resource = new ByteArrayResource(file.readAllBytes());
         } catch (IOException e) {
-            throw new RuntimeException("Error while reading" + fileName + "file", e);
+            throw new RuntimeException("Error while reading " + fileName + " file", e);
         }
         return new FileDto(fileName, resource);
     }

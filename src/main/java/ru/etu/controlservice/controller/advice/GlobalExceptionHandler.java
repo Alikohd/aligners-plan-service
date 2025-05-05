@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import ru.etu.controlservice.dto.ErrorResponse;
 import ru.etu.controlservice.exceptions.CaseNotFoundException;
+import ru.etu.controlservice.exceptions.FileNotFoundException;
 import ru.etu.controlservice.exceptions.NodeNotFoundException;
 import ru.etu.controlservice.exceptions.PatientNotFoundException;
 import ru.etu.controlservice.exceptions.RequiredNodesNotFoundException;
@@ -17,7 +18,7 @@ import java.time.Instant;
 @Slf4j
 public class GlobalExceptionHandler {
 
-    @ExceptionHandler({RequiredNodesNotFoundException.class,
+    @ExceptionHandler({RequiredNodesNotFoundException.class, FileNotFoundException.class,
             CaseNotFoundException.class, NodeNotFoundException.class, PatientNotFoundException.class})
     @ResponseStatus(HttpStatus.NOT_FOUND)
     public ErrorResponse handleEntityNotFoundException(Exception ex) {

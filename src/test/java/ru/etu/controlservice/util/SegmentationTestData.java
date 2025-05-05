@@ -18,7 +18,8 @@ public class SegmentationTestData {
     public static final String mockCtOriginalUri = "pacs://patient-1/ct.zip";
     public static final String mockCtMaskUri = "pacs://patient-1/ctMask.zip";
     public static final String mockJawUpperUri = "patient-1/jawUpper.stl";
-    public static final String mockJawLowerMUri = "patient-1/jawLower.stl";
+    public static final String mockJawLowerUri = "patient-1/jawLower.stl";
+    public static final String mockGeneralUri = "testUri";
     public static final String mockJawsSegmented = """
             [
                 {

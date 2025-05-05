@@ -23,8 +23,8 @@ public class NodeTestUtils {
     public static UUID createCtSegmentationNode(UUID patientId, UUID caseId, TreatmentCaseService treatmentCaseService, NodeService nodeService) {
         TreatmentCase treatmentCase = treatmentCaseService.getCaseById(patientId, caseId);
         Node nodeCt = nodeService.addStepToEnd(treatmentCase);
-        File testCtFile = File.fromPacs("testUri");
-        File testMaskFile = File.fromPacs("testUri");
+        File testCtFile = File.fromPacs(SegmentationTestData.mockCtOriginalUri);
+        File testMaskFile = File.fromPacs(SegmentationTestData.mockCtMaskUri);
         CtSegmentation ct = CtSegmentation.builder()
                 .ctOriginal(testCtFile)
                 .ctMask(testMaskFile)
@@ -38,8 +38,8 @@ public class NodeTestUtils {
     public static UUID createJawSegmentationNode(UUID patientId, UUID caseId, TreatmentCaseService treatmentCaseService, NodeService nodeService) {
         TreatmentCase treatmentCase = treatmentCaseService.getCaseById(patientId, caseId);
         Node nodeJaw = nodeService.addStepToEnd(treatmentCase);
-        File testJawFile1 = File.fromS3("testUri");
-        File testJawFile2 = File.fromS3("testUri");
+        File testJawFile1 = File.fromS3(SegmentationTestData.mockGeneralUri);
+        File testJawFile2 = File.fromS3(SegmentationTestData.mockGeneralUri);
         List<JsonNode> jawsSegmented = SegmentationTestData.getJsonNodes(SegmentationTestData.mockJawsSegmented);
         JawSegmentation jaw = JawSegmentation.builder()
                 .jawLower(testJawFile1)
@@ -54,7 +54,7 @@ public class NodeTestUtils {
     public static UUID createAlignmentSegmentationNode(UUID patientId, UUID caseId, TreatmentCaseService treatmentCaseService, NodeService nodeService) {
         TreatmentCase treatmentCase = treatmentCaseService.getCaseById(patientId, caseId);
         Node nodeAlignment = nodeService.addStepToEnd(treatmentCase);
-        File testStlFile = File.fromS3("testUri");
+        File testStlFile = File.fromS3(SegmentationTestData.mockGeneralUri);
         JsonNode jsonNode = SegmentationTestData.getMockJson();
         AlignmentSegmentation alignment = AlignmentSegmentation.builder()
                 .toothRefs(List.of(testStlFile))
@@ -75,12 +75,13 @@ public class NodeTestUtils {
         return nodeResult.getId();
     }
 
-    public static void createTreatmentStepNode(UUID patientId, UUID caseId, TreatmentCaseService treatmentCaseService, NodeService nodeService) {
+    public static UUID createTreatmentStepNode(UUID patientId, UUID caseId, TreatmentCaseService treatmentCaseService, NodeService nodeService) {
         TreatmentCase treatmentCase = treatmentCaseService.getCaseById(patientId, caseId);
         Node nodeTreatment = nodeService.addStepToEnd(treatmentCase);
         JsonNode jsonNode = SegmentationTestData.getMockJson();
         TreatmentPlanning treatmentStep = TreatmentPlanning.builder().treatmentStepMatrixGroup(jsonNode).attachment(SegmentationTestData.getMockJson()).build();
         nodeTreatment.setTreatmentPlanning(treatmentStep);
         nodeService.updateNode(nodeTreatment);
+        return nodeTreatment.getId();
     }
 }

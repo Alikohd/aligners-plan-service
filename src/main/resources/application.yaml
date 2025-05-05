@@ -27,6 +27,10 @@ pacs:
   address:
     base: ${PACS_URI}
 
+task-poller:
+  max-attempts: 3
+  backoff: 5000
+
 s3:
   uri: ${S3_URI}
   credentials:

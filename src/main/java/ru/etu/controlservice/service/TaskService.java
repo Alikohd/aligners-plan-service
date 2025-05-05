@@ -37,19 +37,4 @@ public class TaskService {
             throw new RuntimeException("Failed to send task to queue", e);
         }
     }
-
-    @Transactional(propagation = Propagation.MANDATORY)
-    public void addTask(String payload, NodeType type) {
-        log.info("Adding task for NodeType: {}", type);
-        try {
-            Map<String, Object> headers = new HashMap<>();
-            headers.put("nodeType", type.name());
-            taskQueueChannel.send(new GenericMessage<>(payload, headers));
-            log.info("Task without NodeId sent to queue for NodeType: {}", type);
-        } catch (Exception e) {
-            log.error("Failed to send task to queue for NodeType: {}", type, e);
-            throw new RuntimeException("Failed to send task to queue", e);
-        }
-    }
-
 }

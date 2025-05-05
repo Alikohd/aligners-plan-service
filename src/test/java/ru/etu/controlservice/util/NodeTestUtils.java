@@ -1,6 +1,8 @@
 package ru.etu.controlservice.util;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.SneakyThrows;
 import ru.etu.controlservice.entity.AlignmentSegmentation;
 import ru.etu.controlservice.entity.CtSegmentation;
 import ru.etu.controlservice.entity.File;
@@ -16,8 +18,9 @@ import java.util.List;
 import java.util.UUID;
 
 public class NodeTestUtils {
+    private final static ObjectMapper mapper = new ObjectMapper();
 
-    public static void createCtSegmentationNode(UUID patientId, UUID caseId, TreatmentCaseService treatmentCaseService, NodeService nodeService) {
+    public static UUID createCtSegmentationNode(UUID patientId, UUID caseId, TreatmentCaseService treatmentCaseService, NodeService nodeService) {
         TreatmentCase treatmentCase = treatmentCaseService.getCaseById(patientId, caseId);
         Node nodeCt = nodeService.addStepToEnd(treatmentCase);
         File testCtFile = File.fromPacs("testUri");
@@ -28,22 +31,27 @@ public class NodeTestUtils {
                 .build();
         nodeCt.setCtSegmentation(ct);
         nodeService.updateNode(nodeCt);
+        return nodeCt.getId();
     }
 
-    public static void createJawSegmentationNode(UUID patientId, UUID caseId, TreatmentCaseService treatmentCaseService, NodeService nodeService) {
+    @SneakyThrows
+    public static UUID createJawSegmentationNode(UUID patientId, UUID caseId, TreatmentCaseService treatmentCaseService, NodeService nodeService) {
         TreatmentCase treatmentCase = treatmentCaseService.getCaseById(patientId, caseId);
         Node nodeJaw = nodeService.addStepToEnd(treatmentCase);
         File testJawFile1 = File.fromS3("testUri");
         File testJawFile2 = File.fromS3("testUri");
+        List<JsonNode> jawsSegmented = SegmentationTestData.getJsonNodes(SegmentationTestData.mockJawsSegmented);
         JawSegmentation jaw = JawSegmentation.builder()
                 .jawLower(testJawFile1)
                 .jawUpper(testJawFile2)
+                .jawsSegmented(jawsSegmented)
                 .build();
         nodeJaw.setJawSegmentation(jaw);
         nodeService.updateNode(nodeJaw);
+        return nodeJaw.getId();
     }
 
-    public static void createAlignmentSegmentationNode(UUID patientId, UUID caseId, TreatmentCaseService treatmentCaseService, NodeService nodeService) {
+    public static UUID createAlignmentSegmentationNode(UUID patientId, UUID caseId, TreatmentCaseService treatmentCaseService, NodeService nodeService) {
         TreatmentCase treatmentCase = treatmentCaseService.getCaseById(patientId, caseId);
         Node nodeAlignment = nodeService.addStepToEnd(treatmentCase);
         File testStlFile = File.fromS3("testUri");
@@ -54,15 +62,17 @@ public class NodeTestUtils {
                 .build();
         nodeAlignment.setAlignmentSegmentation(alignment);
         nodeService.updateNode(nodeAlignment);
+        return nodeAlignment.getId();
     }
 
-    public static void createResultPlanningNode(UUID patientId, UUID caseId, TreatmentCaseService treatmentCaseService, NodeService nodeService) {
+    public static UUID createResultPlanningNode(UUID patientId, UUID caseId, TreatmentCaseService treatmentCaseService, NodeService nodeService) {
         TreatmentCase treatmentCase = treatmentCaseService.getCaseById(patientId, caseId);
         Node nodeResult = nodeService.addStepToEnd(treatmentCase);
         JsonNode jsonNode = SegmentationTestData.getMockJson();
         ResultPlanning result = ResultPlanning.builder().desiredTeethMatrices(List.of(jsonNode)).build();
         nodeResult.setResultPlanning(result);
         nodeService.updateNode(nodeResult);
+        return nodeResult.getId();
     }
 
     public static void createTreatmentStepNode(UUID patientId, UUID caseId, TreatmentCaseService treatmentCaseService, NodeService nodeService) {

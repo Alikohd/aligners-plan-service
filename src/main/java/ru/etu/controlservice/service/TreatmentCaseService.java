@@ -2,6 +2,7 @@ package ru.etu.controlservice.service;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ru.etu.controlservice.dto.TreatmentCaseDto;
 import ru.etu.controlservice.entity.Node;
 import ru.etu.controlservice.entity.Patient;
@@ -22,6 +23,7 @@ public class TreatmentCaseService {
     private final TreatmentCaseRepository caseRepository;
     private final TreatmentCaseMapper caseMapper;
 
+    @Transactional
     public TreatmentCaseDto createCase(UUID patientId) {
         Patient patient = patientRepository.findById(patientId)
                 .orElseThrow(() -> new PatientNotFoundException(String.format("Patient with id %s not found", patientId)));

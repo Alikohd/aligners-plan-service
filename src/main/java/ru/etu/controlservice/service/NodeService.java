@@ -2,7 +2,6 @@ package ru.etu.controlservice.service;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import ru.etu.controlservice.entity.Node;
 import ru.etu.controlservice.entity.TreatmentCase;
@@ -11,6 +10,7 @@ import ru.etu.controlservice.repository.NodeRepository;
 import ru.etu.controlservice.repository.TreatmentCaseRepository;
 
 import java.util.Comparator;
+import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 import java.util.stream.Stream;
@@ -22,7 +22,7 @@ public class NodeService {
     private final NodeRepository nodeRepository;
     private final TreatmentCaseRepository treatmentCaseRepository;
 
-    @Transactional(propagation = Propagation.MANDATORY)
+    @Transactional
     public Node addStepToEnd(TreatmentCase treatmentCase) {
         Node rootNode = treatmentCase.getRoot();
 
@@ -52,9 +52,22 @@ public class NodeService {
         return Stream.iterate(
                 startNode,
                 Objects::nonNull,
-                node -> node.getNextNodes().stream()
-                        .max(Comparator.comparing(Node::getCreatedAt))
-                        .orElse(null)
+                node -> {
+                    System.out.println("Current node ID: " + node.getId());
+
+                    List<Node> nextNodes = node.getNextNodes();
+                    if (nextNodes == null || nextNodes.isEmpty()) {
+                        System.out.println("No next nodes for node ID: " + node.getId());
+                        return null;
+                    }
+
+                    Node next = nextNodes.stream()
+                            .max(Comparator.comparing(Node::getCreatedAt))
+                            .orElse(null);
+
+                    System.out.println("Next node ID: " + next.getId());
+                    return next;
+                }
         );
     }
 

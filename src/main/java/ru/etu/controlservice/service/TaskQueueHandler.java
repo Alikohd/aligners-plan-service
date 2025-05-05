@@ -45,6 +45,7 @@ public class TaskQueueHandler {
 
     @ServiceActivator(inputChannel = "tasksQueue", poller = @Poller(value = "tasksPoller"), adviceChain = "retryAdvice")
     public void handleTask(Message<?> message) {
+        log.info("handleTask invoked with message: {}", message);
         try {
             String payload = (String) message.getPayload();
             Map<String, Object> headers = message.getHeaders();
@@ -56,7 +57,9 @@ public class TaskQueueHandler {
 
             TaskProcessor processor = processorMap.get(nodeType);
             if (processor == null) {
-                throw new MessagingException("No processor found for NodeType: " + nodeType);
+                MessagingException messagingException = new MessagingException("No processor found for NodeType: " + nodeType);
+                log.error(messagingException.getMessage());
+                throw messagingException;
             }
 
             // Десериализация payload

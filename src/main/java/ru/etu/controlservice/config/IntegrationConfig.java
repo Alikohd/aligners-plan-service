@@ -3,6 +3,7 @@ package ru.etu.controlservice.config;
 import jakarta.persistence.EntityManagerFactory;
 import lombok.extern.slf4j.Slf4j;
 import org.aopalliance.aop.Advice;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.task.TaskExecutor;
@@ -33,6 +34,12 @@ import java.util.List;
 @Slf4j
 @EnableIntegration
 public class IntegrationConfig {
+
+    @Value("${task-poller.backoff}")
+    private int backoff;
+
+    @Value("${task-poller.max-attempts}")
+    private int maxAttempts;
 
     @Bean
     public MessageChannel tasksQueue(JdbcChannelMessageStore taskMessageStore) {
@@ -65,10 +72,10 @@ public class IntegrationConfig {
         RequestHandlerRetryAdvice advice = new RequestHandlerRetryAdvice();
         RetryTemplate retryTemplate = new RetryTemplate();
         SimpleRetryPolicy retryPolicy = new SimpleRetryPolicy();
-        retryPolicy.setMaxAttempts(3);
+        retryPolicy.setMaxAttempts(maxAttempts);
         retryTemplate.setRetryPolicy(retryPolicy);
         FixedBackOffPolicy backOffPolicy = new FixedBackOffPolicy();
-        backOffPolicy.setBackOffPeriod(5000); // 5 секунд между попытками
+        backOffPolicy.setBackOffPeriod(backoff); // 5 секунд между попытками
         retryTemplate.setBackOffPolicy(backOffPolicy);
         advice.setRetryTemplate(retryTemplate);
         advice.setRecoveryCallback(context -> {

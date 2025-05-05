@@ -1,4 +1,4 @@
-package ru.etu.controlservice.integration.service;
+package ru.etu.controlservice.integration;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -34,7 +34,6 @@ import ru.etu.controlservice.entity.TreatmentPlanning;
 import ru.etu.controlservice.grpc.FakeResultPlanningService;
 import ru.etu.controlservice.grpc.FakeSegmentationService;
 import ru.etu.controlservice.grpc.FakeTreatmentPlanningService;
-import ru.etu.controlservice.integration.TestContainersConfig;
 import ru.etu.controlservice.service.NodeService;
 import ru.etu.controlservice.service.PatientService;
 import ru.etu.controlservice.service.TaskService;
@@ -178,7 +177,7 @@ public class QueueHandlerIT extends TestContainersConfig {
         UUID patientId = patientService.addPatient().id();
         UUID caseId = treatmentCaseService.createCase(patientId).id();
         TreatmentCase treatmentCase = treatmentCaseService.getCaseById(patientId, caseId);
-        SegmentationJawPayload payload = new SegmentationJawPayload(SegmentationTestData.mockJawUpperUri, SegmentationTestData.mockJawLowerMUri);
+        SegmentationJawPayload payload = new SegmentationJawPayload(SegmentationTestData.mockJawUpperUri, SegmentationTestData.mockJawLowerUri);
         String expectedJawsSegmentedString = SegmentationTestData.mockJawsSegmented;
         JsonNode jsonArray = mapper.readTree(expectedJawsSegmentedString);
         List<JsonNode> expectedJawsSegmented = new java.util.ArrayList<>();

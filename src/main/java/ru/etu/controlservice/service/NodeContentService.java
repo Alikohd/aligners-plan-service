@@ -8,6 +8,7 @@ import ru.etu.controlservice.dto.nodecontent.JawSegmentationDto;
 import ru.etu.controlservice.dto.nodecontent.ResultPlanningDto;
 import ru.etu.controlservice.dto.nodecontent.TreatmentPlanningDto;
 import ru.etu.controlservice.entity.Node;
+import ru.etu.controlservice.exceptions.NodeNotFoundException;
 import ru.etu.controlservice.mapper.NodeContentMapper;
 import ru.etu.controlservice.repository.NodeRepository;
 
@@ -23,7 +24,7 @@ public class NodeContentService {
     public CtSegmentationDto getCtNode(UUID patientId, UUID caseId, UUID nodeId) {
         caseService.getCaseById(patientId, caseId);
         Node node = nodeRepository.findByIdWithCtSegmentation(nodeId).orElseThrow(
-                () -> new IllegalArgumentException(String.format("Node with id %s not found", nodeId)));
+                () -> new NodeNotFoundException(String.format("Node with id %s not found", nodeId)));
         if (node.getCtSegmentation() == null) {
             throw new IllegalArgumentException("This node is not CtSegmentation");
         }
@@ -33,7 +34,7 @@ public class NodeContentService {
     public JawSegmentationDto getJawNode(UUID patientId, UUID caseId, UUID nodeId) {
         caseService.getCaseById(patientId, caseId);
         Node node = nodeRepository.findByIdWithJawSegmentation(nodeId).orElseThrow(
-                () -> new IllegalArgumentException(String.format("Node with id %s not found", nodeId)));
+                () -> new NodeNotFoundException(String.format("Node with id %s not found", nodeId)));
         if (node.getJawSegmentation() == null) {
             throw new IllegalArgumentException("This node is not JawSegmentation");
         }
@@ -43,7 +44,7 @@ public class NodeContentService {
     public AlignmentSegmentationDto getAlignmentNode(UUID patientId, UUID caseId, UUID nodeId) {
         caseService.getCaseById(patientId, caseId);
         Node node = nodeRepository.findByIdWithAlignmentSegmentation(nodeId).orElseThrow(
-                () -> new IllegalArgumentException(String.format("Node with id %s not found", nodeId)));
+                () -> new NodeNotFoundException(String.format("Node with id %s not found", nodeId)));
         if (node.getAlignmentSegmentation() == null) {
             throw new IllegalArgumentException("This node is not Alignment");
         }
@@ -53,7 +54,7 @@ public class NodeContentService {
     public ResultPlanningDto getResultPlanning(UUID patientId, UUID caseId, UUID nodeId) {
         caseService.getCaseById(patientId, caseId);
         Node node = nodeRepository.findByIdWithResultPlanning(nodeId).orElseThrow(
-                () -> new IllegalArgumentException(String.format("Node with id %s not found", nodeId)));
+                () -> new NodeNotFoundException(String.format("Node with id %s not found", nodeId)));
         if (node.getResultPlanning() == null) {
             throw new IllegalArgumentException("This node is not ResultPlanning");
         }
@@ -64,7 +65,7 @@ public class NodeContentService {
     public TreatmentPlanningDto getTreatmentPlanning(UUID patientId, UUID caseId, UUID nodeId) {
         caseService.getCaseById(patientId, caseId);
         Node node = nodeRepository.findByIdWithTreatmentPlanning(nodeId).orElseThrow(
-                () -> new IllegalArgumentException(String.format("Node with id %s not found", nodeId)));
+                () -> new NodeNotFoundException(String.format("Node with id %s not found", nodeId)));
         if (node.getTreatmentPlanning() == null) {
             throw new IllegalArgumentException("This node is not TreatmentPlanning");
         }

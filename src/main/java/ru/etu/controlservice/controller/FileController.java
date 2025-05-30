@@ -1,43 +1,32 @@
 package ru.etu.controlservice.controller;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
-import ru.etu.controlservice.dto.FileDto;
-import ru.etu.controlservice.service.FileService;
+import ru.etu.controlservice.service.CommonFileService;
 
 import java.io.IOException;
+import java.util.UUID;
 
 @RestController
-@RequestMapping("api/storage/s3")
+@RequestMapping("/files")
+@RequiredArgsConstructor
 public class FileController {
-    private final FileService fileService;
+    private final CommonFileService commonFileService;
 
-    public FileController(FileService fileService) {
-        this.fileService = fileService;
-    }
-
-    @GetMapping("download")
-    @ResponseStatus
-    public ResponseEntity<Resource> downloadFile(@RequestParam String path) throws IOException {
-        FileDto fileDto = fileService.downloadFile(path);
-
+    @GetMapping("/{fileId}")
+    public ResponseEntity<Resource> getFile(@PathVariable UUID fileId) throws IOException {
+        Resource file = commonFileService.getFile(fileId);
         return ResponseEntity.ok()
                 .contentType(MediaType.APPLICATION_OCTET_STREAM)
-                .contentLength(fileDto.content().contentLength())
-                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + fileDto.name() + "\"")
-                .body(fileDto.content());
+                .contentLength(file.contentLength())
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment;")
+                .body(file);
     }
-
-//    @PostMapping(value = "upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-//    public String uploadFile(@RequestParam("file") MultipartFile file) throws IOException {
-//        fileService.saveFile(file.getOriginalFilename(), file.getInputStream());
-//        return file.getOriginalFilename();
-//    }
 }

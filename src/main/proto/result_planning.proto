@@ -1,5 +1,6 @@
 syntax = "proto3";
 import "segmentation.proto";
+import "google/protobuf/struct.proto";
 
 package ru.etu.grpc.resultplanning;
 
@@ -11,7 +12,7 @@ message ResultPlanningRequest {
 }
 
 message ResultPlanningResponse {
-  repeated string desired_teeth_matrices = 1;
+  repeated google.protobuf.Struct desired_teeth_matrices = 1;
 }
 
 service ResultPlanningService {

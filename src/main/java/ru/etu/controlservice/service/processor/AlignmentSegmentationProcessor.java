@@ -1,81 +1,77 @@
 package ru.etu.controlservice.service.processor;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.protobuf.Struct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.messaging.MessagingException;
 import org.springframework.stereotype.Component;
 import ru.etu.controlservice.dto.task.AlignmentPayload;
 import ru.etu.controlservice.entity.CtSegmentation;
 import ru.etu.controlservice.entity.JawSegmentation;
 import ru.etu.controlservice.entity.Node;
 import ru.etu.controlservice.entity.NodeType;
-import ru.etu.controlservice.entity.Task;
 import ru.etu.controlservice.repository.NodeRepository;
-import ru.etu.controlservice.service.SegmentationClient;
-import ru.etu.controlservice.service.SegmentationNodeUpdater;
+import ru.etu.controlservice.service.NodeUpdater;
+import ru.etu.controlservice.service.client.SegmentationClient;
 import ru.etu.grpc.segmentation.AnatomicalStructure;
 
 import java.util.List;
+import java.util.UUID;
 
 @Component
 @RequiredArgsConstructor
 @Slf4j
 public class AlignmentSegmentationProcessor implements TaskProcessor {
     private final SegmentationClient segmentationClient;
-    private final SegmentationNodeUpdater segmentationNodeUpdater;
+    private final NodeUpdater nodeUpdater;
     private final NodeRepository nodeRepository;
-    private final ObjectMapper objectMapper;
 
     @Override
-    public void process(Task task) {
+    public void process(Object payload, Node node) {
         try {
-            AlignmentPayload payload = objectMapper.readValue(task.getPayload(), AlignmentPayload.class);
-            Long ctNodeId = payload.ctNodeId();
-            Long jawNodeId = payload.jawNodeId();
+            AlignmentPayload alignmentPayload = (AlignmentPayload) payload;
+            UUID ctNodeId = alignmentPayload.ctNodeId();
+            UUID jawNodeId = alignmentPayload.jawNodeId();
 
-            Node alignmentNode = task.getNode();
-            if (alignmentNode == null) {
-                throw new IllegalStateException("No Node associated with task " + task.getId());
-            }
+            log.info("Processing SEGMENTATION_ALIGNMENT for node {}: ctNodeId={}, jawNodeId={}",
+                    node.getId(), ctNodeId, jawNodeId);
 
-            CtSegmentation ctSegmentation = nodeRepository.findByIdWithCtSegmentation(ctNodeId).getCtSegmentation();
-            JawSegmentation jawSegmentation = nodeRepository.findByIdWithJawSegmentation(jawNodeId).getJawSegmentation();
-
-            log.info("Task {}: ctSegmentation is null: {}, jawSegmentation is null: {}",
-                    task.getId(), ctSegmentation == null, jawSegmentation == null);
+            CtSegmentation ctSegmentation = nodeRepository.findByIdWithCtSegmentation(ctNodeId)
+                    .orElseThrow(() -> new MessagingException("CtSegmentation not found for node " + ctNodeId))
+                    .getCtSegmentation();
+            JawSegmentation jawSegmentation = nodeRepository.findByIdWithJawSegmentation(jawNodeId)
+                    .orElseThrow(() -> new MessagingException("JawSegmentation not found for node " + jawNodeId))
+                    .getJawSegmentation();
 
             if (ctSegmentation == null || jawSegmentation == null) {
-                throw new IllegalStateException("Required segmentations not found: ctSegmentation=" +
+                throw new MessagingException("Required segmentations not found: ctSegmentation=" +
                         (ctSegmentation == null ? "null" : "present") +
                         ", jawSegmentation=" +
                         (jawSegmentation == null ? "null" : "present"));
             }
 
             List<AnatomicalStructure> alignmentSegmentationResponse = segmentationClient.align(
-                    ctSegmentation.getCtMask(),
-                    jawSegmentation.getJawUpperStl(),
-                    jawSegmentation.getJawLowerStl(),
-                    jawSegmentation.getJawsJson()
+                    ctSegmentation.getCtMask().getUri(),
+                    jawSegmentation.getJawUpper().getUri(),
+                    jawSegmentation.getJawLower().getUri(),
+                    jawSegmentation.getJawsSegmented()
             );
 
             if (alignmentSegmentationResponse == null) {
-                log.error("Alignment returned null for task {}", task.getId());
-                throw new RuntimeException("Alignment returned null result");
+                log.error("Alignment returned null for node {}", node.getId());
+                throw new MessagingException("Alignment returned null result");
             }
 
             List<String> stls = alignmentSegmentationResponse.stream()
                     .map(AnatomicalStructure::getStl)
                     .toList();
-            List<String> initMatrices = alignmentSegmentationResponse.stream()
+            List<Struct> initMatrices = alignmentSegmentationResponse.stream()
                     .map(AnatomicalStructure::getInitMatrix)
                     .toList();
-
-            segmentationNodeUpdater.setAlignmentSegmentation(
-                    alignmentNode, ctSegmentation, jawSegmentation, stls, initMatrices
-            );
+            nodeUpdater.setAlignmentSegmentation(node, stls, initMatrices);
         } catch (Exception e) {
-            log.error("Alignment failed for task {}: {}", task.getId(), e.getMessage(), e);
-            throw new RuntimeException("Failed to process ALIGNMENT task", e);
+            log.error("Failed to process SEGMENTATION_ALIGNMENT task for node {}: {}", node.getId(), e.getMessage(), e);
+            throw new MessagingException("Failed to process SEGMENTATION_ALIGNMENT task", e);
         }
     }
 
@@ -83,5 +79,4 @@ public class AlignmentSegmentationProcessor implements TaskProcessor {
     public NodeType getSupportedType() {
         return NodeType.SEGMENTATION_ALIGNMENT;
     }
-
 }

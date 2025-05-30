@@ -15,5 +15,5 @@ public record PacsZipCreationRequestDto(
         @SerializedName("Synchronous")
         Boolean synchronous
 
-){
+) {
 }

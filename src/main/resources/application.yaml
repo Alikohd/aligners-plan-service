@@ -10,9 +10,12 @@ spring:
     url: ${DATABASE_URL}
     username: ${DATABASE_USERNAME}
     password: ${DATABASE_PASSWORD}
+  liquibase:
+    enabled: true
+    change-log: db/changelog/changelog-master.xml
   jpa:
     hibernate:
-      ddl-auto: update
+      ddl-auto: validate
     show-sql: true
     properties:
       hibernate:
@@ -23,6 +26,10 @@ server:
 pacs:
   address:
     base: ${PACS_URI}
+
+task-poller:
+  max-attempts: 3
+  backoff: 5000
 
 s3:
   uri: ${S3_URI}
@@ -42,4 +49,11 @@ grpc:
     segmentationService:
       address: static://localhost:9093
       negotiation-type: plaintext
+
+springdoc:
+  override-with-generic-response: false
+
+#springdoc:
+#  swagger-ui:
+#    path: /swagger-ui.html
 

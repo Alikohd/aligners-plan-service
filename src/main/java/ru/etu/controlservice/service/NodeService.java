@@ -4,14 +4,15 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.etu.controlservice.entity.Node;
-import ru.etu.controlservice.entity.NodeNextRelation;
-import ru.etu.controlservice.entity.NodePrevRelation;
 import ru.etu.controlservice.entity.TreatmentCase;
+import ru.etu.controlservice.exceptions.NodeNotFoundException;
 import ru.etu.controlservice.repository.NodeRepository;
 import ru.etu.controlservice.repository.TreatmentCaseRepository;
 
 import java.util.Comparator;
+import java.util.List;
 import java.util.Objects;
+import java.util.UUID;
 import java.util.stream.Stream;
 
 @Service
@@ -22,7 +23,7 @@ public class NodeService {
     private final TreatmentCaseRepository treatmentCaseRepository;
 
     @Transactional
-    public Node addStep(TreatmentCase treatmentCase) {
+    public Node addStepToEnd(TreatmentCase treatmentCase) {
         Node rootNode = treatmentCase.getRoot();
 
         if (rootNode == null) {
@@ -30,43 +31,49 @@ public class NodeService {
         }
 
         Node lastNode = findLastNode(rootNode);
-        return appendNewNode(lastNode);
+        return addStepTo(lastNode);
     }
 
     private Node createInitialNode(TreatmentCase treatmentCase) {
-        Node newNode = Node.builder()
-                .treatmentBranchId(1L)
-                .build();
-
+        Node newNode = new Node();
         treatmentCase.setRoot(newNode);
         treatmentCaseRepository.save(treatmentCase);
 
         return newNode;
     }
 
-    private Node findLastNode(Node startNode) {
+    public Node findLastNode(Node startNode) {
         return traverseNodes(startNode)
                 .reduce((first, second) -> second) // Берем последний элемент потока
                 .orElse(startNode); // Если поток пустой, возвращаем начальный узел
     }
 
-//    todo: handle n+1 trouble?
     public Stream<Node> traverseNodes(Node startNode) {
         return Stream.iterate(
                 startNode,
                 Objects::nonNull,
-                node -> node.getNextNodes().stream()
-                        .max(Comparator.comparing(relation -> relation.getNextNode().getTreatmentBranchId()))
-                        .map(NodeNextRelation::getNextNode)
-                        .orElse(null)
+                node -> {
+                    System.out.println("Current node ID: " + node.getId());
+
+                    List<Node> nextNodes = node.getNextNodes();
+                    if (nextNodes == null || nextNodes.isEmpty()) {
+                        System.out.println("No next nodes for node ID: " + node.getId());
+                        return null;
+                    }
+
+                    Node next = nextNodes.stream()
+                            .max(Comparator.comparing(Node::getCreatedAt))
+                            .orElse(null);
+
+                    System.out.println("Next node ID: " + next.getId());
+                    return next;
+                }
         );
     }
 
     @Transactional
-    protected Node appendNewNode(Node previousNode) {
-        Node newNode = Node.builder()
-                .treatmentBranchId(previousNode.getTreatmentBranchId())
-                .build();
+    public Node addStepTo(Node previousNode) {
+        Node newNode = new Node();
 
         createBidirectionalRelation(previousNode, newNode);
         newNode = nodeRepository.save(newNode);
@@ -76,17 +83,16 @@ public class NodeService {
     }
 
     private void createBidirectionalRelation(Node previousNode, Node newNode) {
-        NodeNextRelation nextRelation = NodeNextRelation.builder()
-                .node(previousNode)
-                .nextNode(newNode)
-                .build();
+        previousNode.getNextNodes().add(newNode);
+        newNode.setPrevNode(previousNode);
+    }
 
-        NodePrevRelation prevRelation = NodePrevRelation.builder()
-                .node(newNode)
-                .prevNode(previousNode)
-                .build();
+    public Node updateNode(Node node) {
+        return nodeRepository.save(node);
+    }
 
-        previousNode.getNextNodes().add(nextRelation);
-        newNode.getPrevNodes().add(prevRelation);
+    public Node getNode(UUID id) {
+        return nodeRepository.findById(id)
+                .orElseThrow(() -> new NodeNotFoundException(String.format("Node with id %s not found", id)));
     }
 }

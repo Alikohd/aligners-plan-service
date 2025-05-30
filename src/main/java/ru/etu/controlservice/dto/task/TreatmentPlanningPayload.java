@@ -1,4 +1,6 @@
 package ru.etu.controlservice.dto.task;
 
-public record TreatmentPlanningPayload(Long resultPlanningId) {
+import java.util.UUID;
+
+public record TreatmentPlanningPayload(UUID resultPlanningId) {
 }

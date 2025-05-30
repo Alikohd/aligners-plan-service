@@ -1,0 +1,4 @@
+S3_BUCKET_NAME: patient-files
+task-poller:
+  max-attempts: 2
+  backoff: 3000

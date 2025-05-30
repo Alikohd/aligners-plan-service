@@ -4,6 +4,7 @@ package ru.etu.grpc.segmentation;
 
 option java_package = "ru.etu.grpc.segmentation";
 option java_multiple_files = true;
+import "google/protobuf/struct.proto";
 
 service SegmentationService {
   rpc SegmentCt (CtRequest) returns (CtResponse) {}
@@ -20,24 +21,24 @@ message CtResponse {
 }
 
 message JawRequest {
-  string jawUpperStl = 1;
-  string jawLowerStl = 2;
+  string jawUpper = 1;
+  string jawLower = 2;
 }
 
 message JawResponse {
-  repeated string jawsJson = 1;
+  repeated google.protobuf.Struct jaws_segmented = 1;
 }
 
 message AnatomicalStructure {
   string stl = 1;
-  string init_matrix = 2;
+  google.protobuf.Struct init_matrix = 2;
 }
 
 message AlignmentRequest {
   string ctMask = 1;
   string jaw_upper_stl = 2;
   string jaw_lower_stl = 3;
-  repeated string jawsJson = 4;
+  repeated google.protobuf.Struct jaws_segmented = 4;
 }
 
 message AlignmentResponse {

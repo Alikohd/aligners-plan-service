@@ -1,4 +1,6 @@
 package ru.etu.controlservice.dto;
 
-public record PatientDto(Long id) {
+import java.util.UUID;
+
+public record PatientDto(UUID id) {
 }

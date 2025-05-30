@@ -30,7 +30,7 @@ services:
   db:
     container_name: "db"
     env_file:
-      - .env
+      - .env-dev
     image: "postgres:17.3-alpine3.21"
     environment:
       POSTGRES_DB: ${DATABASE_NAME}

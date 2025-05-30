@@ -1,0 +1,27 @@
+spring:
+  servlet:
+    multipart:
+      max-file-size: 256MB
+      max-request-size: 256MB
+  jpa:
+    show-sql: true
+    hibernate:
+      ddl-auto: validate
+server:
+  port: 8080
+
+task-poller:
+  max-attempts: 3
+  backoff: 5000
+
+grpc:
+  client:
+    segmentationService:
+      address: static://localhost:9091
+      negotiation-type: plaintext
+    resultPlanningService:
+      address: static://localhost:9092
+      negotiationType: plaintext
+    treatmentPlanningService:
+      address: static://localhost:9093
+      negotiationType: plaintext

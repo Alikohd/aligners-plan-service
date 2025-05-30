@@ -3,8 +3,8 @@ spring:
     name: control-service
   servlet:
     multipart:
-      max-file-size: 256MB
-      max-request-size: 256MB
+      max-file-size: ${MAX_FILE_SIZE}
+      max-request-size: ${MAX_FILE_SIZE}
       enabled: true
   datasource:
     url: ${DATABASE_URL}
@@ -15,21 +15,25 @@ spring:
     change-log: db/changelog/changelog-master.xml
   jpa:
     hibernate:
-      ddl-auto: validate
-    show-sql: true
+      ddl-auto: none
+    show-sql: false
     properties:
       hibernate:
         format_sql: true
+  jackson:
+    deserialization:
+      fail-on-unknown-properties: true
+
 server:
-  port: 9099
+  port: ${APPLICATION_PORT}
 
 pacs:
   address:
     base: ${PACS_URI}
 
 task-poller:
-  max-attempts: 3
-  backoff: 5000
+  max-attempts: ${POLLER_MAX_ATTEMPTS}
+  backoff: ${POLLER_BACKOFF}
 
 s3:
   uri: ${S3_URI}
@@ -38,22 +42,11 @@ s3:
     keySecret: ${S3_KEY_SECRET}
   bucket-name: ${S3_BUCKET_NAME}
 
-grpc:
-  client:
-    resultPlanningService:
-      address: static://localhost:9091
-      negotiationType: plaintext
-    treatmentPlanningService:
-      address: static://localhost:9092
-      negotiationType: plaintext
-    segmentationService:
-      address: static://localhost:9093
-      negotiation-type: plaintext
+logging:
+  level:
+    root: info
+    ru.etu.controlservice: debug
+    ru.etu.grpc: info
 
 springdoc:
   override-with-generic-response: false
-
-#springdoc:
-#  swagger-ui:
-#    path: /swagger-ui.html
-

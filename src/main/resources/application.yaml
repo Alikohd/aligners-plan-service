@@ -50,3 +50,12 @@ logging:
 
 springdoc:
   override-with-generic-response: false
+
+grpc:
+  client:
+    segmentationService:
+      address: ${SEGMENTATION_SERVICE_ADDRESS}
+    resultPlanningService:
+      address: ${RESULT_SERVICE_ADDRESS}
+    treatmentPlanningService:
+      address: ${TREATMENT_SERVICE_ADDRESS}

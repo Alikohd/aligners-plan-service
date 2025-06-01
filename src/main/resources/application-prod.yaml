@@ -5,11 +5,8 @@ springdoc:
 grpc:
   client:
     segmentationService:
-      address: ${SEGMENTATION_SERVICE_ADDRESS}
       negotiation-type: tls
     resultPlanningService:
-      address: ${RESULT_SERVICE_ADDRESS}
       negotiationType: tls
     treatmentPlanningService:
-      address: ${TREATMENT_SERVICE_ADDRESS}
       negotiationType: tls

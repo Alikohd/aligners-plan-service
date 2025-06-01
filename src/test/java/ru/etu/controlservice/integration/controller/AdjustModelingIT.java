@@ -32,7 +32,7 @@ import java.util.UUID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static ru.etu.controlservice.util.NodeTestUtils.*;
@@ -175,7 +175,12 @@ public class AdjustModelingIT extends TestContainersConfig {
 
         mockMvc.perform(multipart("/patients/{patientId}/cases/{caseId}/segmentation/ct-adjust-inline", patientId, caseId)
                         .file(ctArchive)
-                        .param("node", ctNode.getId().toString()))
+                        .param("node", ctNode.getId().toString())
+                        .with(request -> {
+                            request.setMethod("PUT");
+                            return request;
+                        })
+                )
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andReturn();
@@ -194,7 +199,7 @@ public class AdjustModelingIT extends TestContainersConfig {
         List<JsonNode> oldJawsSegmented = jawNode.getJawSegmentation().getJawsSegmented();
 
         JawAmendRequestDto request = new JawAmendRequestDto(List.of(SegmentationTestData.getMockJson()));
-        mockMvc.perform(post("/patients/{patientId}/cases/{caseId}/segmentation/jaw-adjust-inline", patientId, caseId)
+        mockMvc.perform(put("/patients/{patientId}/cases/{caseId}/segmentation/jaw-adjust-inline", patientId, caseId)
                         .param("node", jawNode.getId().toString())
                         .content(mapper.writeValueAsString(request))
                         .contentType(MediaType.APPLICATION_JSON))
@@ -216,7 +221,7 @@ public class AdjustModelingIT extends TestContainersConfig {
         List<JsonNode> oldInitTeethMatrices = alignmentNode.getAlignmentSegmentation().getInitTeethMatrices();
         AlignmentAmendRequestDto request = new AlignmentAmendRequestDto(List.of(SegmentationTestData.getUpdatedMockJson()));
 
-        mockMvc.perform(post("/patients/{patientId}/cases/{caseId}/segmentation/alignment-adjust-inline", patientId, caseId)
+        mockMvc.perform(put("/patients/{patientId}/cases/{caseId}/segmentation/alignment-adjust-inline", patientId, caseId)
                         .param("node", alignmentNode.getId().toString())
                         .content(mapper.writeValueAsString(request))
                         .contentType(MediaType.APPLICATION_JSON))
@@ -238,7 +243,7 @@ public class AdjustModelingIT extends TestContainersConfig {
         List<JsonNode> oldDesiredTeethMatrices = resultNode.getResultPlanning().getDesiredTeethMatrices();
         ResultPlanningAmendRequestDto request = new ResultPlanningAmendRequestDto(List.of(SegmentationTestData.getUpdatedMockJson()));
 
-        mockMvc.perform(post("/patients/{patientId}/cases/{caseId}/planning/result-adjust-inline", patientId, caseId)
+        mockMvc.perform(put("/patients/{patientId}/cases/{caseId}/planning/result-adjust-inline", patientId, caseId)
                         .param("node", resultNode.getId().toString())
                         .content(mapper.writeValueAsString(request))
                         .contentType(MediaType.APPLICATION_JSON))
@@ -259,9 +264,9 @@ public class AdjustModelingIT extends TestContainersConfig {
         Node treatmentNode = nodeService.findLastNode(treatmentCase.getRoot());
         JsonNode oldMatrixGroup = treatmentNode.getTreatmentPlanning().getTreatmentStepMatrixGroup();
         JsonNode oldAttachment = treatmentNode.getTreatmentPlanning().getAttachment();
-        TreatmentPlanningAmendRequest request = new TreatmentPlanningAmendRequest(SegmentationTestData.getUpdatedMockJson(),SegmentationTestData.getUpdatedMockJson());
+        TreatmentPlanningAmendRequest request = new TreatmentPlanningAmendRequest(SegmentationTestData.getUpdatedMockJson(), SegmentationTestData.getUpdatedMockJson());
 
-        mockMvc.perform(post("/patients/{patientId}/cases/{caseId}/planning/treatment-adjust-inline", patientId, caseId)
+        mockMvc.perform(put("/patients/{patientId}/cases/{caseId}/planning/treatment-adjust-inline", patientId, caseId)
                         .param("node", treatmentNode.getId().toString())
                         .content(mapper.writeValueAsString(request))
                         .contentType(MediaType.APPLICATION_JSON))

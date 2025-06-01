@@ -2,3 +2,16 @@ S3_BUCKET_NAME: patient-files
 task-poller:
   max-attempts: 2
   backoff: 3000
+spring:
+  servlet:
+    multipart:
+      max-file-size: 256MB
+      max-request-size: 256MB
+grpc:
+  client:
+    segmentationService:
+      negotiation-type: plaintext
+    resultPlanningService:
+      negotiationType: plaintext
+    treatmentPlanningService:
+      negotiationType: plaintext

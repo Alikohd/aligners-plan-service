@@ -10,6 +10,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -58,7 +59,7 @@ public class PlanningController {
         return resultPlanningService.adjustResult(patientId, caseId, nodeId);
     }
 
-    @PostMapping("/result-adjust-inline")
+    @PutMapping("/result-adjust-inline")
     @Tag(name = "Result Planning")
     @Operation(summary = "Править матрицы планирования результата", description = "Заменяет матрицы желаемого положения зубов на заданные для указанного узла, пациента и случая")
     @ApiResponses(value = {
@@ -103,7 +104,7 @@ public class PlanningController {
         return treatmentPlanningService.adjustTreatment(patientId, caseId, nodeId);
     }
 
-    @PostMapping("/treatment-adjust-inline")
+    @PutMapping("/treatment-adjust-inline")
     @Tag(name = "Treatment Planning")
     @Operation(summary = "Править шаг лечения", description = "Заменяет шаг лечения на заданный для указанного узла, пациента и случая")
     @ApiResponses(value = {

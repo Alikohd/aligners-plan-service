@@ -11,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -63,7 +64,7 @@ public class SegmentationController {
         return segmentationService.adjustCt(patientId, caseId, nodeId, ctArchive);
     }
 
-    @PostMapping(value = "/ct-adjust-inline", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PutMapping(value = "/ct-adjust-inline", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @Tag(name = "CT Segmentation")
     @Operation(summary = "Править результат сегментации КТ", description = "Заменяет маску КТ на заданную для указанного узла, пациента и случая")
     @ApiResponses(value = {
@@ -113,7 +114,7 @@ public class SegmentationController {
         return segmentationService.adjustJaw(patientId, caseId, nodeId, jawUpperStl, jawLowerStl);
     }
 
-    @PostMapping("/jaw-adjust-inline")
+    @PutMapping("/jaw-adjust-inline")
     @Tag(name = "Jaw Segmentation")
     @Operation(summary = "Править результат сегментации челюстей", description = "Заменяет результат сегментации челюстей на заданный для указанного узла, пациента и случая")
     @ApiResponses(value = {
@@ -175,7 +176,7 @@ public class SegmentationController {
         return segmentationService.adjustAlignment(patientId, caseId, nodeId);
     }
 
-    @PostMapping("/alignment-adjust-inline")
+    @PutMapping("/alignment-adjust-inline")
     @Tag(name = "Alignment")
     @Operation(summary = "Править результат совмещения", description = "Заменяет результат совмещения на заданный для указанного узла, пациента и случая")
     @ApiResponses(value = {

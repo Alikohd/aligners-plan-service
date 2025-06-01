@@ -12,6 +12,14 @@ services:
       - ~/data/orthodontist:/data
     command: server /data --console-address ":9001"
 
+  treatment-plan-orchestrator:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: treatment-orchestrator
+    ports:
+      - "8080:8080"
+
   pacs:
     image: orthancteam/orthanc:24.3.3
     container_name: pacs

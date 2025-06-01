@@ -22,12 +22,14 @@ public class OpenApiConfig {
                         .description("Микросервис для моделирования и управления планом лечения в ортодонтии"))
                 .tags(List.of(
                         new Tag().name("Patient").description("API для управления пациентами"),
-                        new Tag().name("Treatment Case").description("Работа с случаями лечения (case)"),
+                        new Tag().name("Treatment Case").description("Работа со случаями лечения (case)"),
                         new Tag().name("CT Segmentation").description("Работа с сегментацией КТ"),
                         new Tag().name("Jaw Segmentation").description("Работа с сегментацией челюстей"),
                         new Tag().name("Alignment").description("Работа с совмещением сегментаций КТ и челюстей"),
                         new Tag().name("Result Planning").description("Работа с планированием результата"),
-                        new Tag().name("Treatment Planning").description("Работа с планированием лечения и шагами лечения")
+                        new Tag().name("Treatment Planning").description("Работа с планированием лечения и шагами лечения"),
+                        new Tag().name("Node Content").description("Операции для получения содержимого узлов"),
+                        new Tag().name("File Management").description("Операции для работы с файлами")
                 ));
     }
 

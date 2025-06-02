@@ -1,5 +1,6 @@
 package ru.etu.controlservice.service;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -10,6 +11,7 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
 @Service
+@Slf4j
 public class SegmentationValidationService {
     // Valid MIME types for STL files
     private static final List<String> VALID_STL_MIME_TYPES = Arrays.asList(
@@ -28,7 +30,7 @@ public class SegmentationValidationService {
      */
     public void validateCtArchive(MultipartFile ctArchive) {
         // Check if the file is a ZIP archive
-        if (!"application/zip".equals(ctArchive.getContentType()) && !"application/octet-stream".equals(ctArchive.getContentType())) {
+        if (!ctArchive.getOriginalFilename().endsWith(".zip")) {
             throw new IllegalArgumentException("The uploaded file is not a ZIP archive.");
         }
 
@@ -45,7 +47,7 @@ public class SegmentationValidationService {
 
                 // Check if the file has .dcm extension
                 if (!entry.getName().toLowerCase().endsWith(".dcm")) {
-                    throw new IllegalArgumentException("The ZIP archive contains non-DICOM files: " + entry.getName());
+                    log.warn("The ZIP archive contains non-DICOM files: {}", entry.getName());
                 }
 
                 hasDicomFiles = true; // Mark that a .dcm file was found

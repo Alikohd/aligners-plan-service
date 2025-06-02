@@ -19,7 +19,11 @@ public class OpenApiConfig {
                 .info(new Info()
                         .title("Treatment plan management API")
                         .version("1.0.0")
-                        .description("Микросервис для моделирования и управления планом лечения в ортодонтии"))
+                        .description("""
+                                Микросервис для моделирования и управления планом лечения в ортодонтии
+                         
+                                [Примеры входных данных](https://disk.yandex.ru/d/yzX37EGlXTkxWw)
+                                """))
                 .tags(List.of(
                         new Tag().name("Patient").description("API для управления пациентами"),
                         new Tag().name("Treatment Case").description("Работа со случаями лечения (case)"),

@@ -28,7 +28,7 @@ public class SegmentationValidationService {
      */
     public void validateCtArchive(MultipartFile ctArchive) {
         // Check if the file is a ZIP archive
-        if (!"application/zip".equals(ctArchive.getContentType())) {
+        if (!"application/zip".equals(ctArchive.getContentType()) && !"application/octet-stream".equals(ctArchive.getContentType())) {
             throw new IllegalArgumentException("The uploaded file is not a ZIP archive.");
         }
 

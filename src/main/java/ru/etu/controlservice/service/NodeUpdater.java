@@ -91,19 +91,6 @@ public class NodeUpdater {
         nodeRepository.save(node);
     }
 
-//    @Transactional
-//    public void setTreatmentPlanning(Node node,
-//                                     List<String> collectionOfMatricesGroups, List<String> attachment) {
-//        log.debug("Setting TreatmentPlanning...");
-//        TreatmentPlanning treatmentPlanning = TreatmentPlanning.builder()
-//                .treatmentStepMatrixGroups(collectionOfMatricesGroups)
-//                .attachment(attachment)
-//                .build();
-//        treatmentPlanningRepository.save(treatmentPlanning);
-//        node.setTreatmentPlanning(treatmentPlanning);
-//        nodeRepository.save(node);
-//    }
-
     @Transactional
     public void setTreatmentPlanning(Node lastNode, List<JsonNode> matrixGroups,
                                      List<JsonNode> attachments) {
@@ -112,13 +99,22 @@ public class NodeUpdater {
         if (matrixGroups.size() != attachments.size()) {
             throw new IllegalArgumentException("Mismatch between matrix groups and attachment size");
         }
+        TreatmentPlanning firstPlanning = TreatmentPlanning.builder()
+                .treatmentStepMatrixGroup(matrixGroups.get(0))
+                .attachment(attachments.get(0))
+                .build();
+        treatmentPlanningRepository.save(firstPlanning);
+        lastNode.setTreatmentPlanning(firstPlanning);
+        nodeRepository.save(lastNode);
+
         Node currNode = lastNode;
-        for (int i = 0; i < matrixGroups.size(); i++) {
+        for (int i = 1; i < matrixGroups.size(); i++) {
             TreatmentPlanning planningStep = TreatmentPlanning.builder()
                     .treatmentStepMatrixGroup(matrixGroups.get(i))
                     .attachment(attachments.get(i))
                     .build();
             treatmentPlanningRepository.save(planningStep);
+
             Node node = nodeService.addStepTo(currNode);
             node.setTreatmentPlanning(planningStep);
             nodeRepository.save(node);

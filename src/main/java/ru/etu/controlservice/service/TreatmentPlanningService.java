@@ -35,13 +35,14 @@ public class TreatmentPlanningService {
     @Transactional
     public MetaNodeDto startTreatmentPlanning(UUID patientId, UUID caseId, UUID nodeId) {
         TreatmentCase tCase = caseService.getCaseById(patientId, caseId);
-        Node lastNode;
+        Node firstTreatmentStepNode;
         if (nodeId != null) {
-            lastNode = nodeService.getNode(nodeId);
+            Node currentNode = nodeService.getNode(nodeId);
+            firstTreatmentStepNode = nodeService.addStepTo(currentNode);
         } else {
-            lastNode = nodeService.findLastNode(tCase.getRoot());
+            firstTreatmentStepNode = nodeService.addStepToEnd(tCase);
         }
-        return pendTreatmentTask(lastNode);
+        return pendTreatmentTask(firstTreatmentStepNode);
     }
 
     public MetaNodeDto adjustTreatmentInline(UUID patientId, UUID caseId, UUID nodeId, JsonNode matrixGroup, JsonNode attachment) {
@@ -63,15 +64,15 @@ public class TreatmentPlanningService {
         return pendTreatmentTask(newNode);
     }
 
-    private MetaNodeDto pendTreatmentTask(Node newNode) {
-        Map<NodeType, Node> requiredNodes = nodeContentUtils.getRequiredPrevNodes(newNode, NODES_REQUIRED_FOR_TREATMENT_PLANNING);
+    private MetaNodeDto pendTreatmentTask(Node firstTreatmentStepNode) {
+        Map<NodeType, Node> requiredNodes = nodeContentUtils.getRequiredPrevNodes(firstTreatmentStepNode, NODES_REQUIRED_FOR_TREATMENT_PLANNING);
         TreatmentPlanningPayload payload = new TreatmentPlanningPayload(requiredNodes.get(NodeType.RESULT_PLANNING).getId());
         try {
-            taskService.addTask(objectMapper.writeValueAsString(payload), NodeType.TREATMENT_PLANNING, newNode);
+            taskService.addTask(objectMapper.writeValueAsString(payload), NodeType.TREATMENT_PLANNING, firstTreatmentStepNode);
         } catch (JsonProcessingException e) {
             throw new RuntimeException("Failed to serialize payload", e);
         }
 
-        return nodeMapper.toDto(newNode);
+        return nodeMapper.toDto(firstTreatmentStepNode);
     }
 }

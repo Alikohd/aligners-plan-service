@@ -48,9 +48,9 @@ public class SegmentationValidationService {
                 // Check if the file has .dcm extension
                 if (!entry.getName().toLowerCase().endsWith(".dcm")) {
                     log.warn("The ZIP archive contains non-DICOM files: {}", entry.getName());
+                } else {
+                    hasDicomFiles = true;
                 }
-
-                hasDicomFiles = true; // Mark that a .dcm file was found
             }
 
             // Ensure at least one .dcm file exists in the archive

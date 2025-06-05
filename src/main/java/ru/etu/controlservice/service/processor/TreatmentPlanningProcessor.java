@@ -6,7 +6,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import ru.etu.controlservice.dto.grpc.TreatmentPlanningGrpcDto;
-import ru.etu.controlservice.dto.task.TreatmentPlanningPayload;
 import ru.etu.controlservice.entity.AlignmentSegmentation;
 import ru.etu.controlservice.entity.File;
 import ru.etu.controlservice.entity.Node;
@@ -33,12 +32,11 @@ public class TreatmentPlanningProcessor implements TaskProcessor {
     private final NodeContentUtils nodeContentUtils;
 
     @Override
-    public void process(Object payload, Node node) {
+    public void process(Object payload, Node firstTreatmentStepNode) {
         try {
-            TreatmentPlanningPayload treatmentPlanningPayload = (TreatmentPlanningPayload) payload;
-            UUID resultPlanningId = treatmentPlanningPayload.resultPlanningId();
+            UUID resultPlanningId = firstTreatmentStepNode.getPrevNode().getId();
 
-            log.info("Processing TREATMENT_PLANNING with last node {}: resultPlanningId={}", node.getId(), resultPlanningId);
+            log.info("Processing TREATMENT_PLANNING with last node {}: resultPlanningId={}", firstTreatmentStepNode.getId(), resultPlanningId);
 
             Node resultPlanningNode = nodeRepository.findByIdWithResultPlanning(resultPlanningId)
                     .orElseThrow(() -> new IllegalStateException("ResultPlanning node not found: " + resultPlanningId));
@@ -76,19 +74,19 @@ public class TreatmentPlanningProcessor implements TaskProcessor {
 
             TreatmentPlanningGrpcDto treatmentPlanningGrpcDto = treatmentPlanningClient.planTreatment(finalAnatomicalStructures);
             if (treatmentPlanningGrpcDto == null) {
-                log.error("TreatmentPlanning returned null for node {}", node.getId());
+                log.error("TreatmentPlanning returned null for node {}", firstTreatmentStepNode.getId());
                 throw new RuntimeException("TreatmentPlanning returned null result");
             }
 
-            nodeUpdater.setTreatmentPlanning(node,
+            nodeUpdater.setTreatmentPlanning(firstTreatmentStepNode,
                     ProtobufUtils.structsToJsonNodes(treatmentPlanningGrpcDto.collectionsOfMatricesGroups()),
                     ProtobufUtils.structsToJsonNodes(treatmentPlanningGrpcDto.attachments()));
 
             log.info("Successfully processed TREATMENT_PLANNING for node {} with {} steps",
-                    node.getId(), treatmentPlanningGrpcDto.collectionsOfMatricesGroups().size());
+                    firstTreatmentStepNode.getId(), treatmentPlanningGrpcDto.collectionsOfMatricesGroups().size());
 
         } catch (Exception e) {
-            log.error("Failed to process TREATMENT_PLANNING task for node {}: {}", node.getId(), e.getMessage(), e);
+            log.error("Failed to process TREATMENT_PLANNING task for node {}: {}", firstTreatmentStepNode.getId(), e.getMessage(), e);
             throw new RuntimeException("Failed to process TREATMENT_PLANNING task", e);
         }
     }

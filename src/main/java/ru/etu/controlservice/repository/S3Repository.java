@@ -3,6 +3,7 @@ package ru.etu.controlservice.repository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Repository;
+import ru.etu.controlservice.exceptions.FileUnreachableException;
 import ru.etu.controlservice.exceptions.S3OperationException;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
@@ -37,10 +38,13 @@ public class S3Repository {
     }
 
     public InputStream getFile(String filePath) {
-        return s3Client.getObject(GetObjectRequest.builder()
-                .bucket(BUCKET_NAME)
-                .key(filePath)
-                .build());
+        try {
+            return s3Client.getObject(GetObjectRequest.builder()
+                    .bucket(BUCKET_NAME)
+                    .key(filePath)
+                    .build());
+        } catch (Exception e) {
+            throw new FileUnreachableException("Error: file unreachable");
+        }
     }
-
 }

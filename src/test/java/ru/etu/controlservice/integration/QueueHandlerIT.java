@@ -289,9 +289,10 @@ public class QueueHandlerIT extends TestContainersConfig {
         TransactionTemplate template = new TransactionTemplate(transactionManager);
         template.executeWithoutResult((status) -> {
             NodeTestUtils.createAlignmentSegmentationNode(patientId, caseId, treatmentCaseService, nodeService);
-            UUID resultPlanningId = NodeTestUtils.createResultPlanningNode(patientId, caseId, treatmentCaseService, nodeService);
-            Node node = nodeService.getNode(resultPlanningId);
-            TreatmentPlanningPayload treatmentPlanningPayload = new TreatmentPlanningPayload(resultPlanningId);
+            NodeTestUtils.createResultPlanningNode(patientId, caseId, treatmentCaseService, nodeService);
+            UUID firstTreatmentStepNodeId = NodeTestUtils.createTreatmentStepNode(patientId, caseId, treatmentCaseService, nodeService);
+            Node node = nodeService.getNode(firstTreatmentStepNodeId);
+            TreatmentPlanningPayload treatmentPlanningPayload = new TreatmentPlanningPayload(firstTreatmentStepNodeId);
             try {
                 taskService.addTask(mapper.writeValueAsString(treatmentPlanningPayload), NodeType.TREATMENT_PLANNING, node);
             } catch (JsonProcessingException e) {

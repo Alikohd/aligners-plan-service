@@ -16,6 +16,7 @@ import ru.etu.controlservice.dto.DicomDto;
 import ru.etu.controlservice.dto.PacsZipCreationRequestDto;
 import ru.etu.controlservice.entity.Patient;
 import ru.etu.controlservice.entity.TreatmentCase;
+import ru.etu.controlservice.exceptions.FileUnreachableException;
 import ru.etu.controlservice.exceptions.PacsOperationException;
 import ru.etu.controlservice.repository.CtSegRepository;
 import ru.etu.controlservice.repository.PatientRepository;
@@ -115,17 +116,21 @@ public class PacsService {
     }
 
     public Resource getZippedSeriesAsResource(String id) {
-        byte[] zipData = restClient.post()
-                .uri(pacsBase + "/series/" + id + "/archive")
-                .contentType(MediaType.APPLICATION_JSON)
-                .body(new Gson().toJson(PacsZipCreationRequestDto.builder()
-                        .asynchronous(false)
-                        .priority(0)
-                        .synchronous(true)
-                        .build()))
-                .retrieve()
-                .body(byte[].class);
-        return new ByteArrayResource(zipData);
+        try {
+            byte[] zipData = restClient.post()
+                    .uri(pacsBase + "/series/" + id + "/archive")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .body(new Gson().toJson(PacsZipCreationRequestDto.builder()
+                            .asynchronous(false)
+                            .priority(0)
+                            .synchronous(true)
+                            .build()))
+                    .retrieve()
+                    .body(byte[].class);
+            return new ByteArrayResource(zipData);
+        } catch (Exception e) {
+            throw new FileUnreachableException("Error: file unreachable");
+        }
     }
 
 }

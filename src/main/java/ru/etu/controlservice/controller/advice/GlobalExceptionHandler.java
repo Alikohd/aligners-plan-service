@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import ru.etu.controlservice.dto.ErrorResponse;
 import ru.etu.controlservice.exceptions.CaseNotFoundException;
 import ru.etu.controlservice.exceptions.FileNotFoundException;
+import ru.etu.controlservice.exceptions.FileUnreachableException;
 import ru.etu.controlservice.exceptions.NodeNotFoundException;
 import ru.etu.controlservice.exceptions.PatientNotFoundException;
 import ru.etu.controlservice.exceptions.RequiredNodesNotFoundException;
@@ -29,6 +30,12 @@ public class GlobalExceptionHandler {
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ErrorResponse handleClientException(Exception ex) {
         return new ErrorResponse(HttpStatus.BAD_REQUEST.value(), ex.getMessage(), Instant.now());
+    }
+
+    @ExceptionHandler(FileUnreachableException.class)
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    public ErrorResponse handleFileUnreachable(Exception ex) {
+        return new ErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR.value(), ex.getMessage(), Instant.now());
     }
 
     @ExceptionHandler(RuntimeException.class)

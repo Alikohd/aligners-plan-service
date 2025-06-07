@@ -45,7 +45,7 @@ public class BlobService {
         } catch (IOException e) {
             throw new RuntimeException("Error while reading " + fileName + " file", e);
         }
-        return new FileDto(fileName, resource);
+        return new FileDto("model" + ".stl", resource);
     }
 
 }

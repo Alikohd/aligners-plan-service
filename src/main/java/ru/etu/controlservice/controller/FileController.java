@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import ru.etu.controlservice.dto.FileDto;
 import ru.etu.controlservice.service.CommonFileService;
 
 import java.io.IOException;
@@ -36,11 +37,11 @@ public class FileController {
     })
     public ResponseEntity<Resource> getFile(
             @Parameter(description = "Идентификатор файла", example = "123e4567-e89b-12d3-a456-426614174000") @PathVariable UUID fileId) throws IOException {
-        Resource file = commonFileService.getFile(fileId);
+        FileDto file = commonFileService.getFile(fileId);
         return ResponseEntity.ok()
                 .contentType(MediaType.APPLICATION_OCTET_STREAM)
-                .contentLength(file.contentLength())
-                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment;")
-                .body(file);
+                .contentLength(file.content().contentLength())
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + file.name() + "\"")
+                .body(file.content());
     }
 }

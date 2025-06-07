@@ -39,7 +39,7 @@ class CommonFileServiceTest {
     void getFile_fromS3_success() {
         UUID fileId = UUID.randomUUID();
         String uri = SegmentationTestData.mockJawUpperUri;
-        Resource resource = new ByteArrayResource("test".getBytes());
+        FileDto resource = new FileDto("file.obj", new ByteArrayResource("test".getBytes()));
 
         File file = new File();
         file.setId(fileId);
@@ -47,9 +47,9 @@ class CommonFileServiceTest {
         file.setStorageType(StorageType.S3);
 
         when(fileRepository.findById(fileId)).thenReturn(Optional.of(file));
-        when(blobService.downloadFile(uri)).thenReturn(new FileDto("file.obj", resource));
+        when(blobService.downloadFile(uri)).thenReturn(new FileDto("file.obj", resource.content()));
 
-        Resource result = commonFileService.getFile(fileId);
+        FileDto result = commonFileService.getFile(fileId);
         assertNotNull(result);
         assertEquals(resource, result);
     }
@@ -58,7 +58,7 @@ class CommonFileServiceTest {
     void getFile_fromPACS_success() {
         UUID fileId = UUID.randomUUID();
         String uri = SegmentationTestData.mockGeneralUri;
-        Resource pacsResource = new ByteArrayResource("dicom zip".getBytes());
+        FileDto pacsResource = new FileDto("ct.zip", new ByteArrayResource("dicom zip".getBytes()));
 
         File file = new File();
         file.setId(fileId);
@@ -66,9 +66,9 @@ class CommonFileServiceTest {
         file.setStorageType(StorageType.PACS);
 
         when(fileRepository.findById(fileId)).thenReturn(Optional.of(file));
-        when(pacsService.getZippedSeriesAsResource(uri)).thenReturn(pacsResource);
+        when(pacsService.getZippedSeriesAsFileDto(uri)).thenReturn(pacsResource);
 
-        Resource result = commonFileService.getFile(fileId);
+        FileDto result = commonFileService.getFile(fileId);
         assertNotNull(result);
         assertEquals(pacsResource, result);
     }

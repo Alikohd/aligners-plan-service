@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.multipart.MultipartFile;
 import ru.etu.controlservice.dto.DicomDto;
+import ru.etu.controlservice.dto.FileDto;
 import ru.etu.controlservice.dto.PacsZipCreationRequestDto;
 import ru.etu.controlservice.entity.Patient;
 import ru.etu.controlservice.entity.TreatmentCase;
@@ -115,7 +116,7 @@ public class PacsService {
                 .body(byte[].class);
     }
 
-    public Resource getZippedSeriesAsResource(String id) {
+    public FileDto getZippedSeriesAsFileDto(String id) {
         try {
             byte[] zipData = restClient.post()
                     .uri(pacsBase + "/series/" + id + "/archive")
@@ -127,7 +128,8 @@ public class PacsService {
                             .build()))
                     .retrieve()
                     .body(byte[].class);
-            return new ByteArrayResource(zipData);
+            var resource = new ByteArrayResource(zipData);
+            return new FileDto("archive" + ".zip", resource);
         } catch (Exception e) {
             throw new FileUnreachableException("Error: file unreachable");
         }
